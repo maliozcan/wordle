@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "layout.h"
 
@@ -102,7 +103,7 @@ void destroy_layout(layout_handler_t layout_handler)
 
 void append_buffer(layout_handler_impl_t* layout_handler_impl, const u8_t* str, const size_t size)
 {
-    memcpy(layout_handler_impl->buffer + layout_handler_impl->used_size, str, size);
+    memcpy(&layout_handler_impl->buffer[layout_handler_impl->used_size], str, size);
     layout_handler_impl->used_size += size;
 }
 
@@ -182,6 +183,34 @@ const u8_t* get_layout(layout_handler_t layout_handler)
         return false;
     }
     return layout_handler_impl->buffer;
+}
+
+bool add_word(layout_handler_t layout_handler, const char* word, int order)
+{
+    layout_handler_impl_t* layout_handler_impl = (layout_handler_impl_t*) layout_handler;
+    if (NULL == layout_handler_impl) {
+        fprintf(stderr, "Layout was not initialized\n");
+        return false;
+    }
+    if (layout_handler_impl->word_num <= order) {
+        fprintf(stderr, "order (%d) cannot be greater than or equal to word_num %d\n", order, layout_handler_impl->word_num);
+        return false;
+    }
+    const int word_len = layout_handler_impl->word_len;
+    if (strlen(word) != word_len) {
+        fprintf(stderr, "The length of the word (%s) has to be %d\n", word, word_len);
+        return false;
+    }
+
+    const size_t line_size = LAYOUT_BASIC_ELEM_SIZE * (SQUARE_SIZE + (word_len - 1) * (SQUARE_SIZE - 1)) + 1 /*This is for newline*/;
+    const size_t inner_size = LAYOUT_BASIC_ELEM_SIZE * (word_len + 1) + INNER_SIZE * word_len + 1 /*This is for newline*/;
+    int begin = line_size * (order + 1) + inner_size * order;
+
+    for (int i = 0; i != layout_handler_impl->word_len; ++i) {
+        layout_handler_impl->buffer[begin + 6 * (i + 1) - 2] = toupper(word[i]);
+    }
+
+    return true;
 }
 
 const char* draw_example()
