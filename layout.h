@@ -10,6 +10,9 @@
     typedef char8_t u8_t;
 #endif
 
+#define DEFAULT_WORD_LENGTH     (5)
+#define MIN_WORD_LENGTH         (DEFAULT_WORD_LENGTH)
+#define MAX_WORD_LENGTH         (8)
 
 
 typedef void* layout_handler_t;
@@ -21,5 +24,6 @@ void destroy_layout(layout_handler_t layout_handler);
 const u8_t* get_layout(layout_handler_t layout_handler);
 bool draw_layout(layout_handler_t layout_handler);
 bool add_word(layout_handler_t layout_handler, const char* word, int order);
+void clear_layout(layout_handler_t layout_handler);
 
 #endif // LAYOUT_H

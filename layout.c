@@ -213,6 +213,20 @@ bool add_word(layout_handler_t layout_handler, const char* word, int order)
     return true;
 }
 
+void clear_layout(layout_handler_t layout_handler)
+{
+    layout_handler_impl_t* layout_handler_impl = (layout_handler_impl_t*) layout_handler;
+    if (NULL == layout_handler_impl) {
+        fprintf(stderr, "Layout was not initialized\n");
+        return;
+    }
+    char word[MAX_WORD_LENGTH + 1] = {0};
+    memset(word, ' ', layout_handler_impl->word_len);
+    for (int order = 0; order != layout_handler_impl->word_num; ++order) {
+        add_word(layout_handler, word, order);
+    }
+}
+
 const char* draw_example()
 {
     static char box_1x1[] =
