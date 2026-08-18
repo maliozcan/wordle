@@ -15,5 +15,9 @@ test: test.c utest.h $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@ $(OBJECTS) && \
 	./$@
 
+dynamic_array_test: dynamic_array_test.c dynamic_array.h utest.h
+	$(CC) $(CFLAGS) $< -o $@ && \
+	./$@
+
 clean:
-	rm -f wordle test utest.h *.o
+	rm -f wordle test dynamic_array_test utest.h *.o

@@ -1,4 +1,5 @@
 test
 utest.h
 wordle
+dynamic_array_test
 *.o
