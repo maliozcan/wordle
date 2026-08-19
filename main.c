@@ -4,7 +4,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include "wordle.h"
 #include "layout.h"
+#include "helper.h"
 
 void empty_stdin(char buf[], const size_t buf_size)
 {
@@ -64,6 +66,12 @@ int main(int argc, char* arg[]) {
 
     printf("Welcome to wordle with %d letters!\n", word_len);
 
+    wordle_t wordle = create_wordle(LANGUAGE_ENGLISH, word_len, "./words_alpha.txt");
+    // wordle_t wordle = create_wordle(LANGUAGE_ENGLISH, word_len, "/usr/share/dict/words");
+    if (wordle.word_length == 0) {
+        fprintf(stderr, "Wordle database couldn't be generated!\n");
+        exit(EXIT_FAILURE);
+    }
     const int word_num = word_len < 7 ? 6 : 7;
     layout_handler_t layout_handler = initialize_layout(word_len, word_num);
     if (NULL == layout_handler) {
@@ -71,7 +79,10 @@ int main(int argc, char* arg[]) {
         return 1;
     }
 
-    char target[] = "dummy"; // TODO: get the target word from a database.
+    char target[MAX_WORD_LENGTH + 1] = {0};
+    get_random_word(target, &wordle);
+    target[word_len] = '\0';
+    printf("Target: [%s]\n", target);
     char input[32] = {0};
     char word[MAX_WORD_LENGTH + 1] = {0};
     int word_order = 0;
@@ -84,7 +95,7 @@ int main(int argc, char* arg[]) {
             break;
         }
         const int str_size = strlen(input);
-        if (str_size - 1 == word_len) {
+        if (validate_word(input, str_size, word_len)) {
             memcpy(word, input, word_len);
             add_word(layout_handler, word, word_order);
             ++word_order;
@@ -94,7 +105,9 @@ int main(int argc, char* arg[]) {
                 printf("You found the word. If you want to continue, type [yes]: ");
                 quit = ask_user_if_they_want_to_continue(layout_handler, &word_order);
                 if (false == quit) {
-                    // TODO: get the target word from a database.
+                    get_random_word(target, &wordle);
+                    target[word_len] = '\0';
+                    printf("Target: [%s]\n", target);
                 }
             }
             if (word_num == word_order) {
@@ -103,17 +116,20 @@ int main(int argc, char* arg[]) {
                 printf("You didn't find the word \"%s\". If you want to continue, type [yes]: ", target);
                 quit = ask_user_if_they_want_to_continue(layout_handler, &word_order);
                 if (false == quit) {
-                    // TODO: get the target word from a database.
+                    get_random_word(target, &wordle);
+                    target[word_len] = '\0';
+                    // printf("Target: [%s]\n", target);
                 }
             }
         } else {
-            printf("Word length should be %d!\n", word_len);
+            printf("Word is not valid!\n");
             empty_stdin(input, sizeof(input));
         }
         word[0] = '\0';
     }
 
     destroy_layout(layout_handler);
+    destroy_wordle(&wordle);
 
     return 0;
 }
