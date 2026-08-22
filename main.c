@@ -1,51 +1,9 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <ctype.h>
 
 #include "wordle.h"
-#include "layout.h"
-#include "helper.h"
-
-void empty_stdin(char buf[], const size_t buf_size)
-{
-    if (buf == NULL) {
-        return;
-    }
-    while (strlen(buf) == buf_size - 1) {
-        fgets(buf, buf_size, stdin);
-    }
-    buf[0] = '\0';
-}
-
-typedef int (*fptr_t) (int);
-
-void transform_string(char* str, const size_t size, fptr_t f)
-{
-    for (size_t i = 0; i != size; ++i) {
-        str[i] = f(str[i]);
-    }
-}
-
-bool ask_user_if_they_want_to_continue(layout_handler_t layout_handler, int* word_order)
-{
-    char input[16];
-    if (fgets(input, sizeof(input), stdin) == NULL) {
-        printf("\n");
-        return true;
-    }
-    bool quit = false;
-    transform_string(input, strlen(input), tolower);
-    if (strncmp(input, "yes", 3) == 0) {
-        clear_layout(layout_handler);
-        *word_order = 0;
-        empty_stdin(input, sizeof(input));
-    } else {
-        quit = true;
-    }
-    return quit;
-}
+#include "common_defs.h"
 
 int main(int argc, char* arg[]) {
     int word_len = DEFAULT_WORD_LENGTH;
@@ -73,62 +31,12 @@ int main(int argc, char* arg[]) {
         exit(EXIT_FAILURE);
     }
     const int word_num = word_len < 7 ? 6 : 7;
-    layout_handler_t layout_handler = initialize_layout(word_len, word_num);
-    if (NULL == layout_handler) {
-        fprintf(stderr, "The layout didn't initialized\n");
-        return 1;
+
+    if (run_game_loop(&wordle, word_num) == false) {
+        fprintf(stderr, "The game loop couldn't be run\n");
+        exit(EXIT_FAILURE);
     }
 
-    char target[MAX_WORD_LENGTH + 1] = {0};
-    get_random_word(target, &wordle);
-    target[word_len] = '\0';
-    printf("Target: [%s]\n", target);
-    char input[32] = {0};
-    char word[MAX_WORD_LENGTH + 1] = {0};
-    int word_order = 0;
-    bool quit = false;
-    while (false == quit) {
-        draw_layout(layout_handler);
-        printf("> ");
-        if (fgets(input, sizeof(input), stdin) == NULL) {
-            printf("\n");
-            break;
-        }
-        const int str_size = strlen(input);
-        if (validate_word(input, str_size, word_len)) {
-            memcpy(word, input, word_len);
-            add_word(layout_handler, word, word_order);
-            ++word_order;
-            transform_string(word, word_len, tolower);
-            if (strncmp(word, target, word_len) == 0) {
-                draw_layout(layout_handler);
-                printf("You found the word. If you want to continue, type [yes]: ");
-                quit = ask_user_if_they_want_to_continue(layout_handler, &word_order);
-                if (false == quit) {
-                    get_random_word(target, &wordle);
-                    target[word_len] = '\0';
-                    printf("Target: [%s]\n", target);
-                }
-            }
-            if (word_num == word_order) {
-                draw_layout(layout_handler);
-                transform_string(target, word_len, toupper);
-                printf("You didn't find the word \"%s\". If you want to continue, type [yes]: ", target);
-                quit = ask_user_if_they_want_to_continue(layout_handler, &word_order);
-                if (false == quit) {
-                    get_random_word(target, &wordle);
-                    target[word_len] = '\0';
-                    // printf("Target: [%s]\n", target);
-                }
-            }
-        } else {
-            printf("Word is not valid!\n");
-            empty_stdin(input, sizeof(input));
-        }
-        word[0] = '\0';
-    }
-
-    destroy_layout(layout_handler);
     destroy_wordle(&wordle);
 
     return 0;

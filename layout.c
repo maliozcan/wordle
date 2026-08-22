@@ -7,18 +7,11 @@
 
 #include "layout.h"
 
-#ifdef DEBUG
-#define log(...)    printf(__VA_ARGS__)
-#else
-#define log(...)
-#endif
-
-// It must get more than one argument
-#define TODO(fmt, ...) fprintf(stderr, "TODO: " fmt , __VA_ARGS__)
-
 #define SQUARE_SIZE     (5)
 #define INNER_SIZE      (3)
 #define VERTICAL_SIZE   (3)
+
+#define LAYOUT_BASIC_ELEM_SIZE (3)    // This is for the elements which we used
 
 // TODO: remove it if it is not used
 // typedef struct {

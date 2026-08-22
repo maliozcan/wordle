@@ -2,22 +2,9 @@
 
 #include <stdbool.h>
 
-#if __STDC_VERSION__ < 201112L
-    #error "This C version is not be supported"
-#elif __STDC_VERSION__ < 202311L
-    typedef char u8_t;
-#else
-    typedef char8_t u8_t;
-#endif
-
-#define DEFAULT_WORD_LENGTH     (5)
-#define MIN_WORD_LENGTH         (DEFAULT_WORD_LENGTH)
-#define MAX_WORD_LENGTH         (8)
-
+#include "common_defs.h"
 
 typedef void* layout_handler_t;
-
-#define LAYOUT_BASIC_ELEM_SIZE (3)    // This is for the elements which we used
 
 layout_handler_t initialize_layout(int word_len, int word_num);
 void destroy_layout(layout_handler_t layout_handler);

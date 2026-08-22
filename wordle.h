@@ -17,6 +17,6 @@ typedef struct {
 
 wordle_t create_wordle(language_t lang, int word_len, const char* filepath);
 void destroy_wordle(wordle_t* wordle);
-void get_random_word(char word[], wordle_t* wordle);
+bool run_game_loop(wordle_t* wordle, int word_num);
 
 #endif // WORDLE_H

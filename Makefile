@@ -2,13 +2,13 @@ CC=gcc
 CFLAGS=--std=c11 -Wpedantic -Wall -Werror -O0 -g
 OBJECTS := wordle.o layout.o
 
-wordle: main.c $(OBJECTS) words_alpha.txt
+wordle: main.c $(OBJECTS) wordle.h common_defs.h words_alpha.txt
 	$(CC) $(CFLAGS) $< -o $@ $(OBJECTS)
 
-wordle.o: wordle.c wordle.h dynamic_array.h helper.h
+wordle.o: wordle.c wordle.h layout.h common_defs.h dynamic_array.h helper.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-layout.o: layout.c layout.h
+layout.o: layout.c layout.h common_defs.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 utest.h:
