@@ -17,7 +17,7 @@ void _print_dictionary(const wordle_t* wordle);
 static void _empty_stdin(char buf[], const size_t buf_size);
 static bool _ask_user_if_they_want_to_continue(layout_handler_t layout_handler, int* word_order);
 static void _get_random_word(char word[], wordle_t* wordle);
-
+static bool _is_word_in_dictionary(char word[], wordle_t* wordle);
 
 wordle_t create_wordle(const language_t lang, const int word_len, const char* filepath)
 {
@@ -76,7 +76,7 @@ bool run_game_loop(wordle_t* wordle, int word_num)
             break;
         }
         const int str_size = strlen(input);
-        if (validate_word(input, str_size, word_len)) {
+        if (validate_word(input, str_size, word_len) && _is_word_in_dictionary(input, wordle)) {
             memcpy(word, input, word_len);
             add_word(layout_handler, word, word_order);
             ++word_order;
@@ -189,6 +189,10 @@ static bool _ask_user_if_they_want_to_continue(layout_handler_t layout_handler, 
     return quit;
 }
 
+static bool _is_word_in_dictionary(char word[], wordle_t* wordle)
+{
+    return find_element_in_dynamic_array(&wordle->words, word);
+}
 
 #if 0
 static bool has_space(const char* str, size_t size)

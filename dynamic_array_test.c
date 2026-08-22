@@ -43,6 +43,12 @@ UTEST(dynamic_array, char_array)
         ASSERT_EQ(*((char*)get_dynamic_array_element(&dynamic_array, i)), str[i]);
     }
 
+    // find
+    char searched = 'w';
+    ASSERT_TRUE(find_element_in_dynamic_array(&dynamic_array, &searched) == NULL);
+    searched = 'D';
+    ASSERT_TRUE(find_element_in_dynamic_array(&dynamic_array, &searched) != NULL);
+
     free_dynamic_array(&dynamic_array);
 }
 
@@ -89,6 +95,12 @@ UTEST(dynamic_array, int_array)
     ASSERT_EQ(*((int*)get_dynamic_array_element(&dynamic_array, 1)), a[1]);
     ASSERT_EQ(*((int*)get_dynamic_array_element(&dynamic_array, 2)), a[2]);
 
+    // find
+    int searched = 113;
+    ASSERT_TRUE(find_element_in_dynamic_array(&dynamic_array, &searched) == NULL);
+    searched = 225;
+    ASSERT_TRUE(find_element_in_dynamic_array(&dynamic_array, &searched) != NULL);
+
     free_dynamic_array(&dynamic_array);
 }
 
@@ -130,6 +142,12 @@ UTEST(dynamic_array, string_array)
     ASSERT_EQ(strncmp((const char*)get_dynamic_array_element(&dynamic_array, 0), "ABCDE", string_length), 0);
     ASSERT_EQ(strncmp((const char*)get_dynamic_array_element(&dynamic_array, 1), "fghij", string_length), 0);
     ASSERT_EQ(strncmp((const char*)get_dynamic_array_element(&dynamic_array, 2), "KLMNP", string_length), 0);
+
+    // find
+    char searched[6] = "123_";
+    ASSERT_TRUE(find_element_in_dynamic_array(&dynamic_array, searched) == NULL);
+    memcpy(searched, "KLMNP", string_length);
+    ASSERT_TRUE(find_element_in_dynamic_array(&dynamic_array, searched) != NULL);
 
     free_dynamic_array(&dynamic_array);
 }

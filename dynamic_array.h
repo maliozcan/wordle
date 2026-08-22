@@ -32,6 +32,7 @@ static inline bool append_bulk_dynamic_array(dynamic_array_t* dynamic_array, con
 static inline bool append_dynamic_array(dynamic_array_t* dynamic_array, const void* src);
 static inline size_t get_dynamic_array_size(dynamic_array_t* dynamic_array);
 static inline size_t get_dynamic_array_capacity(dynamic_array_t* dynamic_array);
+static inline void* find_element_in_dynamic_array(dynamic_array_t* dynamic_array, const void* element); // Linear search
 
 
 // Implementation
@@ -127,10 +128,15 @@ static inline bool _append_bulk_dynamic_array(dynamic_array_t* dynamic_array, co
     return true;
 }
 
+static inline void* _get_dynamic_array_element(dynamic_array_t* dynamic_array, size_t index)
+{
+    return (char*)dynamic_array->buf + index * dynamic_array->element_size;
+}
+
 static inline void* get_dynamic_array_element(dynamic_array_t* dynamic_array, size_t index)
 {
     assert(dynamic_array);
-    return (char*)dynamic_array->buf + index * dynamic_array->element_size;
+    return _get_dynamic_array_element(dynamic_array, index);
 }
 
 static inline bool append_bulk_dynamic_array(dynamic_array_t* dynamic_array, const void* src, size_t size)
@@ -155,6 +161,23 @@ static inline size_t get_dynamic_array_capacity(dynamic_array_t* dynamic_array)
 {
     assert(dynamic_array);
     return dynamic_array->capacity;
+}
+
+static inline void* find_element_in_dynamic_array(dynamic_array_t* dynamic_array, const void* element)
+{
+    assert(dynamic_array);
+    assert(element);
+
+    void* found = NULL;
+    const size_t element_size = dynamic_array->element_size;
+    const size_t size = dynamic_array->used_size;
+    for (size_t index = 0; index != size; ++index) {
+        void* e = _get_dynamic_array_element(dynamic_array, index);
+        if (memcmp(e, element, element_size) == 0) {
+            found = e;
+        }
+    }
+    return found;
 }
 
 #endif // DYNAMIC_ARRAY_H
