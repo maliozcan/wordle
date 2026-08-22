@@ -21,6 +21,6 @@
 #define DEFAULT_WORD_LENGTH     (5)
 #define MIN_WORD_LENGTH         (DEFAULT_WORD_LENGTH)
 #define MAX_WORD_LENGTH         (8)
-
+#define MAX_ROW_NUM             (8)
 
 #endif // COMMON_DEFS_H

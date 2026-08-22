@@ -31,6 +31,7 @@ int main(int argc, char* arg[]) {
         exit(EXIT_FAILURE);
     }
     const int word_num = word_len < 7 ? 6 : 7;
+    assert(word_num <= MAX_ROW_NUM);
 
     if (run_game_loop(&wordle, word_num) == false) {
         fprintf(stderr, "The game loop couldn't be run\n");

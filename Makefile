@@ -14,8 +14,8 @@ layout.o: layout.c layout.h common_defs.h
 utest.h:
 	wget -q https://raw.githubusercontent.com/sheredom/utest.h/main/utest.h
 
-test: test.c utest.h $(OBJECTS)
-	$(CC) $(CFLAGS) $< -o $@ $(OBJECTS) && \
+layout_test: layout_test.c utest.h layout.o
+	$(CC) $(CFLAGS) $< -o $@ layout.o && \
 	./$@
 
 dynamic_array_test: dynamic_array_test.c dynamic_array.h utest.h
@@ -26,4 +26,4 @@ words_alpha.txt:
 	wget -q https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt
 
 clean:
-	rm -f wordle test dynamic_array_test utest.h *.o words_alpha.txt
+	rm -f wordle layout_test dynamic_array_test utest.h *.o words_alpha.txt
