@@ -10,7 +10,8 @@ UTEST(layout_initializtion, empty_layout_3x1) {
     layout_handler_t layout_handler = initialize_layout(3, 1);
     ASSERT_TRUE(NULL != layout_handler);
 
-    const size_t num_of_bytes_written = draw_layout(layout_handler);
+    size_t line_num = 0;
+    const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     u8_t* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
@@ -32,7 +33,8 @@ UTEST(layout_initializtion, empty_layout_5x1) {
     layout_handler_t layout_handler = initialize_layout(5, 1);
     ASSERT_TRUE(NULL != layout_handler);
 
-    const size_t num_of_bytes_written = draw_layout(layout_handler);
+    size_t line_num = 0;
+    const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     u8_t* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
@@ -51,7 +53,8 @@ UTEST(layout_initializtion, empty_layout_5x2) {
     layout_handler_t layout_handler = initialize_layout(5, 2);
     ASSERT_TRUE(NULL != layout_handler);
 
-    const size_t num_of_bytes_written = draw_layout(layout_handler);
+    size_t line_num = 0;
+    const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     u8_t* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
@@ -72,7 +75,8 @@ UTEST(layout_initializtion, empty_layout_5x3) {
     layout_handler_t layout_handler = initialize_layout(5, 3);
     ASSERT_TRUE(NULL != layout_handler);
 
-    const size_t num_of_bytes_written = draw_layout(layout_handler);
+    size_t line_num = 0;
+    const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     u8_t* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
@@ -96,10 +100,11 @@ UTEST(word_addition, layout_5x1) {
     layout_handler_t layout_handler = initialize_layout(5, 1);
     ASSERT_TRUE(NULL != layout_handler);
 
-    draw_layout(layout_handler);
+    size_t line_num = 0;
+    draw_layout(layout_handler, &line_num);
     ASSERT_TRUE(add_word(layout_handler, "table", 0));
 
-    const size_t num_of_bytes_written = draw_layout(layout_handler);
+    const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     u8_t* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
@@ -118,10 +123,11 @@ UTEST(word_addition, layout_5x2) {
     layout_handler_t layout_handler = initialize_layout(5, 2);
     ASSERT_TRUE(NULL != layout_handler);
 
-    draw_layout(layout_handler);
+    size_t line_num = 0;
+    draw_layout(layout_handler, &line_num);
     ASSERT_TRUE(add_word(layout_handler, "Table", 0));
     ASSERT_TRUE(add_word(layout_handler, "SiGHt", 1));
-    const size_t num_of_bytes_written = draw_layout(layout_handler);
+    const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     u8_t* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
@@ -142,11 +148,12 @@ UTEST(word_addition, layout_5x3) {
     layout_handler_t layout_handler = initialize_layout(5, 3);
     ASSERT_TRUE(NULL != layout_handler);
 
-    draw_layout(layout_handler);
+    size_t line_num = 0;
+    draw_layout(layout_handler, &line_num);
     ASSERT_TRUE(add_word(layout_handler, "Table", 0));
     ASSERT_TRUE(add_word(layout_handler, "SIGHT", 1));
     ASSERT_TRUE(add_word(layout_handler, "radar", 2));
-    const size_t num_of_bytes_written = draw_layout(layout_handler);
+    const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     u8_t* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 

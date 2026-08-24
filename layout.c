@@ -6,6 +6,7 @@
 #include <ctype.h>
 
 #include "layout.h"
+#include "helper.h"
 
 #define SQUARE_SIZE     (5)
 #define INNER_SIZE      (3)
@@ -37,7 +38,7 @@ typedef struct {
     letter_type letter[MAX_ROW_NUM][MAX_WORD_LENGTH];
 } layout_structure_type;
 
-static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_structure);
+static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_structure, size_t* line_num);
 
 static void set_letter(letter_type* letter, color_type color, const char* c, const int letter_size)
 {
@@ -80,21 +81,6 @@ void destroy_layout(layout_handler_t layout_handler)
     free(layout_structure);
 }
 
-size_t print(FILE* f, const u8_t* str, const size_t size)
-{
-    char buffer[16];
-    memcpy(buffer, str, size);
-    buffer[size] = '\0';
-    fprintf(f, "%s", buffer);
-    return size;
-}
-
-size_t print_newline(FILE* f)
-{
-    print(f, "\n", 1);
-    return 1;
-}
-
 size_t print_letter(FILE* f, const letter_type* letter)
 {
     char letter_buffer[16];
@@ -118,7 +104,7 @@ size_t print_letter(FILE* f, const letter_type* letter)
     return strlen(all_buffer);
 }
 
-static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_structure)
+static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_structure, size_t* line_num)
 {
     if (NULL == layout_structure) {
         fprintf(stderr, "Layout was not initialized\n");
@@ -134,19 +120,19 @@ static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_st
     size_t character_num = 0;
 
     // row 0
-    character_num += print(filestream, "┌", LAYOUT_BASIC_ELEM_SIZE);
+    character_num += print(filestream, "┌", LAYOUT_BASIC_ELEM_SIZE, line_num);
     for (int col = 1; col != char_num_in_line - 1; ++col) {
         const u8_t* c = (col % 4 == 0) ? "┬" : "─";
-        character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE);
+        character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE, line_num);
     }
-    character_num += print(filestream, "┐", LAYOUT_BASIC_ELEM_SIZE);
-    character_num += print_newline(filestream);
+    character_num += print(filestream, "┐", LAYOUT_BASIC_ELEM_SIZE, line_num);
+    character_num += print_newline(filestream, line_num);
 
     for (int row = 1; row != char_num_in_column - 1; ++row) {
         for (int col = 0; col != char_num_in_line; ++col) {
             if ((row - 1) % 2 == 0) { // middle
                 if (col % 4 == 0) {
-                    character_num += print(filestream, "│", LAYOUT_BASIC_ELEM_SIZE);
+                    character_num += print(filestream, "│", LAYOUT_BASIC_ELEM_SIZE, line_num);
                 } else if (col % 4 == 2) {
                     // Print letter
                     // character_num += print(filestream, "X", 1);
@@ -156,43 +142,43 @@ static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_st
                     assert(layout_structure->letter[word_order][letter_index].size == 1);
                     character_num += print_letter(filestream, &layout_structure->letter[word_order][letter_index]);
                 } else {
-                    character_num += print(filestream, " ", 1);
+                    character_num += print(filestream, " ", 1, line_num);
                 }
             } else {
                 assert(row % 2 == 0);
                 if (0 == col) {
-                    character_num += print(filestream, "├", LAYOUT_BASIC_ELEM_SIZE);
+                    character_num += print(filestream, "├", LAYOUT_BASIC_ELEM_SIZE, line_num);
                 } else if (char_num_in_line - 1 == col) {
-                    character_num += print(filestream, "┤", LAYOUT_BASIC_ELEM_SIZE);
+                    character_num += print(filestream, "┤", LAYOUT_BASIC_ELEM_SIZE, line_num);
                 } else {
                     const u8_t* c = (col % 4 == 0) ? "┼" : "─";
-                    character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE);
+                    character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE, line_num);
                 }
             }
         }
-        character_num += print_newline(filestream);
+        character_num += print_newline(filestream, line_num);
     }
  
     // row (char_num_in_column - 1)
-    character_num += print(filestream, "└", LAYOUT_BASIC_ELEM_SIZE);
+    character_num += print(filestream, "└", LAYOUT_BASIC_ELEM_SIZE, line_num);
     for (int col = 1; col != char_num_in_line - 1; ++col) {
         const u8_t* c = (col % 4 == 0) ? "┴" : "─";
-        character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE);
+        character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE, line_num);
     }
-    character_num += print(filestream, "┘", LAYOUT_BASIC_ELEM_SIZE);
-    character_num += print_newline(filestream);
+    character_num += print(filestream, "┘", LAYOUT_BASIC_ELEM_SIZE, line_num);
+    character_num += print_newline(filestream, line_num);
 
     return character_num;
 }
 
-size_t draw_layout(layout_handler_t layout_handler)
+size_t draw_layout(layout_handler_t layout_handler, size_t* line_num)
 {
     layout_structure_type* layout_structure = (layout_structure_type*) layout_handler;
     if (NULL == layout_structure) {
         fprintf(stderr, "Layout was not initialized\n");
         return 0;
     }
-    return _prapare_layout(stdout, layout_structure);
+    return _prapare_layout(stdout, layout_structure, line_num);
 }
 
 bool get_layout(u8_t* buffer, const size_t buf_size, layout_handler_t layout_handler)
@@ -207,7 +193,8 @@ bool get_layout(u8_t* buffer, const size_t buf_size, layout_handler_t layout_han
         perror("tmpfile_f failed");
         return false;
     }
-    if (_prapare_layout(tmpf, layout_structure) == 0) {
+    size_t line_num = 0;
+    if (_prapare_layout(tmpf, layout_structure, &line_num) == 0) {
         return false;
     }
     rewind(tmpf);

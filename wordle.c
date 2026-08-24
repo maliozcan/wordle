@@ -18,6 +18,8 @@ static void _empty_stdin(char buf[], const size_t buf_size);
 static bool _ask_user_if_they_want_to_continue(layout_handler_t layout_handler, int* word_order);
 static void _get_random_word(char word[], wordle_t* wordle);
 static bool _is_word_in_dictionary(char word[], wordle_t* wordle);
+static void _clear_stdout(const size_t line_num);
+static void _print_info(const char* str, size_t* line_num);
 
 wordle_t create_wordle(const language_t lang, const int word_len, const char* filepath)
 {
@@ -61,6 +63,8 @@ bool run_game_loop(wordle_t* wordle, int word_num)
         return false;
     }
 
+    size_t line_num = 0;
+
     char target[MAX_WORD_LENGTH + 1] = {0};
     _get_random_word(target, wordle);
     target[word_len] = '\0';
@@ -68,9 +72,15 @@ bool run_game_loop(wordle_t* wordle, int word_num)
     char word[MAX_WORD_LENGTH + 1] = {0};
     int word_order = 0;
     bool quit = false;
+    bool first_time = true;
     while (false == quit) {
-        draw_layout(layout_handler);
-        printf("> ");
+        if (false == first_time) {
+            _clear_stdout(line_num);
+            line_num = 0;
+        }
+        first_time = false;
+        draw_layout(layout_handler, &line_num);
+        _print_info("> ", &line_num); ++line_num;
         if (fgets(input, sizeof(input), stdin) == NULL) {
             printf("\n");
             break;
@@ -82,8 +92,10 @@ bool run_game_loop(wordle_t* wordle, int word_num)
             ++word_order;
             transform_string(word, word_len, tolower);
             if (strncmp(word, target, word_len) == 0) {
-                draw_layout(layout_handler);
-                printf("You found the word. If you want to continue, type [yes]: ");
+                _clear_stdout(line_num);
+                line_num = 0;
+                draw_layout(layout_handler, &line_num);
+                _print_info("You found the word. If you want to continue, type [yes]: ", &line_num); ++line_num;
                 quit = _ask_user_if_they_want_to_continue(layout_handler, &word_order);
                 if (false == quit) {
                     _get_random_word(target, wordle);
@@ -91,9 +103,11 @@ bool run_game_loop(wordle_t* wordle, int word_num)
                 }
             }
             if (word_num == word_order) {
-                draw_layout(layout_handler);
+                _clear_stdout(line_num);
+                line_num = 0;
+                draw_layout(layout_handler, &line_num);
                 transform_string(target, word_len, toupper);
-                printf("You didn't find the word \"%s\". If you want to continue, type [yes]: ", target);
+                printf("You didn't find the word \"%s\". If you want to continue, type [yes]: ", target); ++line_num;
                 quit = _ask_user_if_they_want_to_continue(layout_handler, &word_order);
                 if (false == quit) {
                     _get_random_word(target, wordle);
@@ -101,7 +115,7 @@ bool run_game_loop(wordle_t* wordle, int word_num)
                 }
             }
         } else {
-            printf("Word is not valid!\n");
+            _print_info("Word is not valid!\n", &line_num);
             _empty_stdin(input, sizeof(input));
         }
         word[0] = '\0';
@@ -192,6 +206,19 @@ static bool _ask_user_if_they_want_to_continue(layout_handler_t layout_handler, 
 static bool _is_word_in_dictionary(char word[], wordle_t* wordle)
 {
     return find_element_in_dynamic_array(&wordle->words, word);
+}
+
+static void _clear_stdout(const size_t line_num)
+{
+    for (size_t i = 0; i != line_num; ++i) {
+        printf("\033[A\033[2K");
+    }
+    fflush(stdout);
+}
+
+static void _print_info(const char* str, size_t* line_num)
+{
+    print(stdout, str, strlen(str), line_num);
 }
 
 #if 0

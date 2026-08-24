@@ -8,7 +8,7 @@ wordle: main.c $(OBJECTS) wordle.h common_defs.h words_alpha.txt
 wordle.o: wordle.c wordle.h layout.h common_defs.h dynamic_array.h helper.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-layout.o: layout.c layout.h common_defs.h
+layout.o: layout.c layout.h common_defs.h helper.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 utest.h:
