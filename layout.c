@@ -16,8 +16,8 @@
 
 typedef enum {
     COLOR_DEFAULT,
-    COLOR_GREEN,
     COLOR_GOLDEN,
+    COLOR_GREEN,
 } color_type;
 
 static const char* default_color = "\033[0m";
@@ -39,6 +39,7 @@ typedef struct {
 } layout_structure_type;
 
 static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_structure, size_t* line_num);
+static color_type _get_color(const letter_position_type position);
 
 static void set_letter(letter_type* letter, color_type color, const char* c, const int letter_size)
 {
@@ -212,7 +213,7 @@ bool get_layout(u8_t* buffer, const size_t buf_size, layout_handler_t layout_han
     return true;
 }
 
-bool add_word(layout_handler_t layout_handler, const char* word, int order)
+bool add_word(layout_handler_t layout_handler, const char* word, int order, const letter_position_type position[MAX_WORD_LENGTH])
 {
     layout_structure_type* layout_structure = (layout_structure_type*) layout_handler;
     if (NULL == layout_structure) {
@@ -232,9 +233,19 @@ bool add_word(layout_handler_t layout_handler, const char* word, int order)
     char buf[MAX_WORD_LENGTH + 1] = {'\0'};
     for (int i = 0; i != word_len; ++i) {
         buf[0] = toupper(word[i]);
-        set_letter(&layout_structure->letter[order][i], COLOR_DEFAULT, buf, 1);
+        const color_type color = _get_color(position[i]);
+        set_letter(&layout_structure->letter[order][i], color, buf, 1);
     }
     return true;
+}
+
+static color_type _get_color(const letter_position_type position)
+{
+    static const color_type position_to_color[NUM_OF_LETTER_POSITION] = {COLOR_DEFAULT, COLOR_GOLDEN, COLOR_GREEN};
+    if (position >= NONE && position < NUM_OF_LETTER_POSITION) {
+        return position_to_color[position];
+    }
+    return COLOR_DEFAULT;
 }
 
 void clear_layout(layout_handler_t layout_handler)
@@ -244,10 +255,11 @@ void clear_layout(layout_handler_t layout_handler)
         fprintf(stderr, "Layout was not initialized\n");
         return;
     }
+    const letter_position_type position[MAX_WORD_LENGTH] = {0};
     char word[MAX_WORD_LENGTH + 1] = {0};
     memset(word, ' ', layout_structure->word_length);
     for (int order = 0; order != layout_structure->word_num; ++order) {
-        add_word(layout_handler, word, order);
+        add_word(layout_handler, word, order, position);
     }
 }
 

@@ -23,4 +23,11 @@
 #define MAX_WORD_LENGTH         (8)
 #define MAX_ROW_NUM             (8)
 
+typedef enum {
+    NONE,
+    EXIST,
+    RIGHT_PLACE,
+    NUM_OF_LETTER_POSITION,
+} letter_position_type;
+
 #endif // COMMON_DEFS_H

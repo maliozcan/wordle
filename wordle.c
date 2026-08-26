@@ -20,6 +20,7 @@ static void _get_random_word(char word[], wordle_t* wordle);
 static bool _is_word_in_dictionary(char word[], wordle_t* wordle);
 static void _clear_stdout(const size_t line_num);
 static void _print_info(const char* str, size_t* line_num);
+static void _find_position(const char word[MAX_WORD_LENGTH], const char target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH]);
 
 wordle_t create_wordle(const language_t lang, const int word_len, const char* filepath)
 {
@@ -65,6 +66,10 @@ bool run_game_loop(wordle_t* wordle, int word_num)
 
     size_t line_num = 0;
 
+    letter_position_type position[MAX_WORD_LENGTH] = {0};
+    for (int i = 0; i != MAX_WORD_LENGTH; ++i) {
+        position[i] = -1;
+    }
     char target[MAX_WORD_LENGTH + 1] = {0};
     _get_random_word(target, wordle);
     target[word_len] = '\0';
@@ -88,9 +93,10 @@ bool run_game_loop(wordle_t* wordle, int word_num)
         const int str_size = strlen(input);
         if (validate_word(input, str_size, word_len) && _is_word_in_dictionary(input, wordle)) {
             memcpy(word, input, word_len);
-            add_word(layout_handler, word, word_order);
-            ++word_order;
             transform_string(word, word_len, tolower);
+            _find_position(word, target, word_len, position);
+            add_word(layout_handler, word, word_order, position);
+            ++word_order;
             if (strncmp(word, target, word_len) == 0) {
                 _clear_stdout(line_num);
                 line_num = 0;
@@ -219,6 +225,62 @@ static void _clear_stdout(const size_t line_num)
 static void _print_info(const char* str, size_t* line_num)
 {
     print(stdout, str, strlen(str), line_num);
+}
+
+static size_t _count_character(const char str[], const size_t size, const int c)
+{
+    size_t total = 0;
+    for (size_t i = 0; i != size; ++i) {
+        if (str[i] == c) {
+            ++total;
+        }
+    }
+    return total;
+}
+
+static void _find_position(const char word[MAX_WORD_LENGTH], const char target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH])
+{
+    for (int i = 0; i != word_len; ++i) {
+        if (word[i] == target[i]) {
+            position[i] = RIGHT_PLACE;
+        } else if (strchr(target, word[i])) {
+            position[i] = EXIST;
+        } else {
+            position[i] = NONE;
+        }
+    }
+    // When the target is DUMMY, the first letter in the word MUMMY shouldn't be in EXIST state.
+    for (int i = 0; i != word_len; ++i) {
+        if (position[i] != RIGHT_PLACE) {
+            continue;
+        }
+        for (int j = 0; j != word_len; ++j) {
+            if (j == i || target[j] == target[i]) {
+                continue;
+            }
+            if (target[i] == word[j]) {
+                position[j] = NONE;
+            }
+        }
+    }
+
+    // When the target is "DUMMY", an imaginary word "CADDD" must have EXIST state for the first D,
+    // the remainings must be NONE since there is one 'D' letter in "DUMMY".
+    for (int i = 0; i != word_len; ++i) {
+        if (position[i] != EXIST) {
+            continue;
+        }
+        size_t count_of_existing = _count_character(target, word_len, word[i]);
+        for (int j = 0; j != word_len; ++j) {
+            if (word[i] == word[j]) {
+                if (count_of_existing > 0) {
+                    --count_of_existing;
+                } else {
+                    position[j] = NONE;
+                }
+            }
+        }
+    }
 }
 
 #if 0
