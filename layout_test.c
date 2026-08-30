@@ -1,10 +1,28 @@
 #include <string.h>
+#include <locale.h>
+#include <wchar.h>
 
 #include "utest.h"
 
 #include "layout.h"
 
-UTEST_MAIN()
+UTEST_STATE();
+
+void configure_locale()
+{
+    const char* english_code = "en_US.UTF-8";
+    const char* l;
+    if ((l = setlocale(LC_ALL, english_code)) == NULL) {
+        fprintf(stderr, "Couldn't set locale as %s\n", english_code);
+        exit(1);
+    }
+    printf("locale: %s\n", l);
+}
+
+int main(int argc, const char *const argv[]) {
+    configure_locale();
+    return utest_main(argc, argv);
+}
 
 static const letter_position_type position[MAX_WORD_LENGTH] = {0};
 
@@ -14,7 +32,7 @@ UTEST(layout_initializtion, empty_layout_3x1) {
 
     size_t line_num = 0;
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
-    u8_t* layout = malloc(num_of_bytes_written);
+    char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
     printf("LAYOUT: \n%s", layout);
@@ -37,7 +55,7 @@ UTEST(layout_initializtion, empty_layout_5x1) {
 
     size_t line_num = 0;
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
-    u8_t* layout = malloc(num_of_bytes_written);
+    char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
     static char box_5x1[] =
@@ -57,7 +75,7 @@ UTEST(layout_initializtion, empty_layout_5x2) {
 
     size_t line_num = 0;
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
-    u8_t* layout = malloc(num_of_bytes_written);
+    char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
     static char box_5x2[] =
@@ -79,7 +97,7 @@ UTEST(layout_initializtion, empty_layout_5x3) {
 
     size_t line_num = 0;
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
-    u8_t* layout = malloc(num_of_bytes_written);
+    char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
 
@@ -104,10 +122,10 @@ UTEST(word_addition, layout_5x1) {
 
     size_t line_num = 0;
     draw_layout(layout_handler, &line_num);
-    ASSERT_TRUE(add_word(layout_handler, "table", 0, position));
+    ASSERT_TRUE(add_word(layout_handler, L"table", 0, position));
 
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
-    u8_t* layout = malloc(num_of_bytes_written);
+    char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
     static char box_5x1[] =
@@ -127,10 +145,10 @@ UTEST(word_addition, layout_5x2) {
 
     size_t line_num = 0;
     draw_layout(layout_handler, &line_num);
-    ASSERT_TRUE(add_word(layout_handler, "Table", 0, position));
-    ASSERT_TRUE(add_word(layout_handler, "SiGHt", 1, position));
+    ASSERT_TRUE(add_word(layout_handler, L"Table", 0, position));
+    ASSERT_TRUE(add_word(layout_handler, L"SiGHt", 1, position));
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
-    u8_t* layout = malloc(num_of_bytes_written);
+    char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
     static char box_5x2[] =
@@ -152,11 +170,11 @@ UTEST(word_addition, layout_5x3) {
 
     size_t line_num = 0;
     draw_layout(layout_handler, &line_num);
-    ASSERT_TRUE(add_word(layout_handler, "Table", 0, position));
-    ASSERT_TRUE(add_word(layout_handler, "SIGHT", 1, position));
-    ASSERT_TRUE(add_word(layout_handler, "radar", 2, position));
+    ASSERT_TRUE(add_word(layout_handler, L"Table", 0, position));
+    ASSERT_TRUE(add_word(layout_handler, L"SIGHT", 1, position));
+    ASSERT_TRUE(add_word(layout_handler, L"radar", 2, position));
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
-    u8_t* layout = malloc(num_of_bytes_written);
+    char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
 
     static char box_5x3[] =

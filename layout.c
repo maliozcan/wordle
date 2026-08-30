@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <string.h>
-#include <ctype.h>
+#include <wctype.h>
 
 #include "layout.h"
 #include "helper.h"
@@ -12,7 +12,6 @@
 #define INNER_SIZE      (3)
 #define VERTICAL_SIZE   (3)
 
-#define LAYOUT_BASIC_ELEM_SIZE (3)    // This is for the elements which we used
 
 typedef enum {
     COLOR_DEFAULT,
@@ -24,12 +23,9 @@ static const char* default_color = "\033[0m";
 static const char* green_color = "\033[32m";
 static const char* golden_color = "\033[38;5;220m";
 
-#define MAX_LETTER_SIZE (4)
-
 typedef struct {
     color_type color;
-    int size;
-    u8_t data[MAX_LETTER_SIZE];
+    wchar_t data;
 } letter_type;
 
 typedef struct {
@@ -41,12 +37,11 @@ typedef struct {
 static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_structure, size_t* line_num);
 static color_type _get_color(const letter_position_type position);
 
-static void set_letter(letter_type* letter, color_type color, const char* c, const int letter_size)
+static void set_letter(letter_type* letter, color_type color, const wchar_t c)
 {
     assert(letter);
     letter->color = color;;
-    letter->size = letter_size;
-    memcpy(letter->data, c, letter_size);
+    letter->data = c;
 }
 
 layout_handler_t initialize_layout(int word_len, int word_num)
@@ -62,11 +57,9 @@ layout_handler_t initialize_layout(int word_len, int word_num)
     layout_structure->word_length = word_len;
     layout_structure->word_num = word_num;
 
-    const char default_char[MAX_LETTER_SIZE] = {' ', '\0', '\0', '\0'};
     for (int row_index = 0; row_index != MAX_ROW_NUM; ++row_index) {
         for (int letter_index = 0; letter_index != MAX_WORD_LENGTH; ++letter_index) {
-            set_letter(&layout_structure->letter[row_index][letter_index], COLOR_DEFAULT, default_char, MAX_LETTER_SIZE);
-            layout_structure->letter[row_index][letter_index].size = 1;
+            set_letter(&layout_structure->letter[row_index][letter_index], COLOR_DEFAULT, L' ');
         }
     }
 
@@ -84,19 +77,16 @@ void destroy_layout(layout_handler_t layout_handler)
 
 size_t print_letter(FILE* f, const letter_type* letter)
 {
-    char letter_buffer[16];
     char all_buffer[32];
-    memcpy(letter_buffer, letter->data, letter->size);
-    letter_buffer[letter->size] = '\0';
     switch (letter->color) {
         case COLOR_DEFAULT:
-            snprintf(all_buffer, sizeof(all_buffer), "%s", letter_buffer);
+            snprintf(all_buffer, sizeof(all_buffer), "%lc", letter->data);
             break;
         case COLOR_GREEN:
-            snprintf(all_buffer, sizeof(all_buffer), "%s%s%s", green_color, letter_buffer, default_color);
+            snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", green_color, letter->data, default_color);
             break;
         case COLOR_GOLDEN:
-            snprintf(all_buffer, sizeof(all_buffer), "%s%s%s", golden_color, letter_buffer, default_color);
+            snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", golden_color, letter->data, default_color);
             break;
         default:
             break;
@@ -121,39 +111,38 @@ static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_st
     size_t character_num = 0;
 
     // row 0
-    character_num += print(filestream, "┌", LAYOUT_BASIC_ELEM_SIZE, line_num);
+    character_num += print(filestream, L"┌", 1, line_num);
     for (int col = 1; col != char_num_in_line - 1; ++col) {
-        const u8_t* c = (col % 4 == 0) ? "┬" : "─";
-        character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE, line_num);
+        const wchar_t* c = (col % 4 == 0) ? L"┬" : L"─";
+        character_num += print(filestream, c, 1, line_num);
     }
-    character_num += print(filestream, "┐", LAYOUT_BASIC_ELEM_SIZE, line_num);
+    character_num += print(filestream, L"┐", 1, line_num);
     character_num += print_newline(filestream, line_num);
 
     for (int row = 1; row != char_num_in_column - 1; ++row) {
         for (int col = 0; col != char_num_in_line; ++col) {
             if ((row - 1) % 2 == 0) { // middle
                 if (col % 4 == 0) {
-                    character_num += print(filestream, "│", LAYOUT_BASIC_ELEM_SIZE, line_num);
+                    character_num += print(filestream, L"│", 1, line_num);
                 } else if (col % 4 == 2) {
                     // Print letter
                     // character_num += print(filestream, "X", 1);
                     assert(row % 2 == 1);
                     const int word_order = (row - 1) / 2;
                     const int letter_index = (col - 2) / 4;
-                    assert(layout_structure->letter[word_order][letter_index].size == 1);
                     character_num += print_letter(filestream, &layout_structure->letter[word_order][letter_index]);
                 } else {
-                    character_num += print(filestream, " ", 1, line_num);
+                    character_num += print(filestream, L" ", 1, line_num);
                 }
             } else {
                 assert(row % 2 == 0);
                 if (0 == col) {
-                    character_num += print(filestream, "├", LAYOUT_BASIC_ELEM_SIZE, line_num);
+                    character_num += print(filestream, L"├", 1, line_num);
                 } else if (char_num_in_line - 1 == col) {
-                    character_num += print(filestream, "┤", LAYOUT_BASIC_ELEM_SIZE, line_num);
+                    character_num += print(filestream, L"┤", 1, line_num);
                 } else {
-                    const u8_t* c = (col % 4 == 0) ? "┼" : "─";
-                    character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE, line_num);
+                    const wchar_t* c = (col % 4 == 0) ? L"┼" : L"─";
+                    character_num += print(filestream, c, 1, line_num);
                 }
             }
         }
@@ -161,12 +150,12 @@ static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_st
     }
  
     // row (char_num_in_column - 1)
-    character_num += print(filestream, "└", LAYOUT_BASIC_ELEM_SIZE, line_num);
+    character_num += print(filestream, L"└", 1, line_num);
     for (int col = 1; col != char_num_in_line - 1; ++col) {
-        const u8_t* c = (col % 4 == 0) ? "┴" : "─";
-        character_num += print(filestream, c, LAYOUT_BASIC_ELEM_SIZE, line_num);
+        const wchar_t* c = (col % 4 == 0) ? L"┴" : L"─";
+        character_num += print(filestream, c, 1, line_num);
     }
-    character_num += print(filestream, "┘", LAYOUT_BASIC_ELEM_SIZE, line_num);
+    character_num += print(filestream, L"┘", 1, line_num);
     character_num += print_newline(filestream, line_num);
 
     return character_num;
@@ -179,10 +168,10 @@ size_t draw_layout(layout_handler_t layout_handler, size_t* line_num)
         fprintf(stderr, "Layout was not initialized\n");
         return 0;
     }
-    return _prapare_layout(stdout, layout_structure, line_num);
+    return _prapare_layout(stdout, layout_structure, line_num) * sizeof(wchar_t);
 }
 
-bool get_layout(u8_t* buffer, const size_t buf_size, layout_handler_t layout_handler)
+bool get_layout(char* buffer, const size_t buf_size, layout_handler_t layout_handler)
 {
     layout_structure_type* layout_structure = (layout_structure_type*) layout_handler;
     if (NULL == layout_structure) {
@@ -213,7 +202,7 @@ bool get_layout(u8_t* buffer, const size_t buf_size, layout_handler_t layout_han
     return true;
 }
 
-bool add_word(layout_handler_t layout_handler, const char* word, int order, const letter_position_type position[MAX_WORD_LENGTH])
+bool add_word(layout_handler_t layout_handler, const wchar_t* word, int order, const letter_position_type position[MAX_WORD_LENGTH])
 {
     layout_structure_type* layout_structure = (layout_structure_type*) layout_handler;
     if (NULL == layout_structure) {
@@ -225,16 +214,14 @@ bool add_word(layout_handler_t layout_handler, const char* word, int order, cons
         return false;
     }
     const int word_len = layout_structure->word_length;
-    if (strlen(word) != word_len) {
-        fprintf(stderr, "The length of the word (%s) has to be %d\n", word, word_len);
+    if (wcslen(word) != word_len) {
+        fprintf(stderr, "The length of the word (%ls) has to be %d\n", word, word_len);
         return false;
     }
 
-    char buf[MAX_WORD_LENGTH + 1] = {'\0'};
     for (int i = 0; i != word_len; ++i) {
-        buf[0] = toupper(word[i]);
         const color_type color = _get_color(position[i]);
-        set_letter(&layout_structure->letter[order][i], color, buf, 1);
+        set_letter(&layout_structure->letter[order][i], color, towupper(word[i]));
     }
     return true;
 }
@@ -256,8 +243,10 @@ void clear_layout(layout_handler_t layout_handler)
         return;
     }
     const letter_position_type position[MAX_WORD_LENGTH] = {0};
-    char word[MAX_WORD_LENGTH + 1] = {0};
-    memset(word, ' ', layout_structure->word_length);
+    wchar_t word[MAX_WORD_LENGTH + 1] = {0};
+    for (int i = 0; i != layout_structure->word_length; ++i) {
+        word[i] = L' ';
+    }
     for (int order = 0; order != layout_structure->word_num; ++order) {
         add_word(layout_handler, word, order, position);
     }

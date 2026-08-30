@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <time.h>
+#include <locale.h>
+#include <wchar.h>
 
 #include "wordle.h"
 #include "layout.h"
@@ -12,15 +14,19 @@
 #include "helper.h"
 #include "dynamic_array.h"
 
-dynamic_array_t _create_english_dictionary(const char* filepath, const int word_length);
+
+// #define DICTONARY_OPTIMIZATION_FOR_MEMORY
+// #define DEBUG_WORDLE
+
+dynamic_array_t _create_english_dictionary(const char* filepath, const int word_length, const bool use_wide_char);
 void _print_dictionary(const wordle_t* wordle);
-static void _empty_stdin(char buf[], const size_t buf_size);
+static void _empty_stdin(wchar_t buf[], const size_t buf_size);
 static bool _ask_user_if_they_want_to_continue(layout_handler_t layout_handler, int* word_order);
-static void _get_random_word(char word[], wordle_t* wordle);
-static bool _is_word_in_dictionary(char word[], wordle_t* wordle);
+static void _get_random_word(wchar_t word[], wordle_t* wordle);
+static bool _is_word_in_dictionary(wchar_t word[], wordle_t* wordle);
 static void _clear_stdout(const size_t line_num);
-static void _print_info(const char* str, size_t* line_num);
-static void _find_position(const char word[MAX_WORD_LENGTH], const char target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH]);
+static void _print_info(const wchar_t* str, size_t* line_num);
+static void _find_position(const wchar_t word[MAX_WORD_LENGTH], const wchar_t target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH]);
 
 wordle_t create_wordle(const language_t lang, const int word_len, const char* filepath)
 {
@@ -28,7 +34,28 @@ wordle_t create_wordle(const language_t lang, const int word_len, const char* fi
     if (lang == LANGUAGE_UNINITIALIZED || lang >= NUM_OF_LANGUAGE) {
         return wordle;
     }
-    wordle.words = _create_english_dictionary(filepath, word_len);
+
+    if (lang == LANGUAGE_ENGLISH) {
+        const char* english_code = "en_US.UTF-8";
+        const char* l;
+        if ((l = setlocale(LC_ALL, english_code)) == NULL) {
+            fprintf(stderr, "Couldn't set locale as %s\n", english_code);
+            exit(1);
+        }
+#ifdef DEBUG_WORDLE
+        printf("locale: %s\n", l);
+#endif
+    } else {
+        fprintf(stderr, "Doesn't support the language [%d]\n", lang);
+        exit(1);
+    }
+
+#ifdef DICTONARY_OPTIMIZATION_FOR_MEMORY
+    const bool use_wide_char = (lang != LANGUAGE_ENGLISH); // Note that ASCII includes all letter in English.
+#else
+    const bool use_wide_char = true;
+#endif
+    wordle.words = _create_english_dictionary(filepath, word_len, use_wide_char);
     if (is_dynamic_array_allocated(&wordle.words)) {
         wordle.language = lang;
         wordle.word_length = word_len;
@@ -70,11 +97,12 @@ bool run_game_loop(wordle_t* wordle, int word_num)
     for (int i = 0; i != MAX_WORD_LENGTH; ++i) {
         position[i] = -1;
     }
-    char target[MAX_WORD_LENGTH + 1] = {0};
+    wchar_t target[MAX_WORD_LENGTH + 1] = {0};
     _get_random_word(target, wordle);
+    printf("Target: %ls\n", target);
     target[word_len] = '\0';
-    char input[32] = {0};
-    char word[MAX_WORD_LENGTH + 1] = {0};
+    wchar_t input[32] = {0};
+    wchar_t word[MAX_WORD_LENGTH + 1] = {0};
     int word_order = 0;
     bool quit = false;
     bool first_time = true;
@@ -85,44 +113,43 @@ bool run_game_loop(wordle_t* wordle, int word_num)
         }
         first_time = false;
         draw_layout(layout_handler, &line_num);
-        _print_info("> ", &line_num); ++line_num;
-        if (fgets(input, sizeof(input), stdin) == NULL) {
+        _print_info(L"> ", &line_num); ++line_num;
+        if (fgetws(input, sizeof(input) / sizeof(wchar_t), stdin) == NULL) {
             printf("\n");
             break;
         }
-        const int str_size = strlen(input);
-        if (validate_word(input, str_size, word_len) && _is_word_in_dictionary(input, wordle)) {
-            memcpy(word, input, word_len);
-            transform_string(word, word_len, tolower);
+        const int str_size = wcslen(input);
+        if (validate_wc_word(input, str_size, word_len) && _is_word_in_dictionary(input, wordle)) {
+            memcpy(word, input, word_len * sizeof(wchar_t));
+            transform_string(word, word_len, towlower);
             _find_position(word, target, word_len, position);
             add_word(layout_handler, word, word_order, position);
             ++word_order;
-            if (strncmp(word, target, word_len) == 0) {
+            if (wcsncmp(word, target, word_len) == 0) {
                 _clear_stdout(line_num);
                 line_num = 0;
                 draw_layout(layout_handler, &line_num);
-                _print_info("You found the word. If you want to continue, type [yes]: ", &line_num); ++line_num;
+                _print_info(L"You found the word. If you want to continue, type [yes]: ", &line_num); ++line_num;
                 quit = _ask_user_if_they_want_to_continue(layout_handler, &word_order);
                 if (false == quit) {
                     _get_random_word(target, wordle);
-                    target[word_len] = '\0';
+                    target[word_len] = L'\0';
                 }
-            }
-            if (word_num == word_order) {
+            } else if (word_num == word_order) {
                 _clear_stdout(line_num);
                 line_num = 0;
                 draw_layout(layout_handler, &line_num);
-                transform_string(target, word_len, toupper);
-                printf("You didn't find the word \"%s\". If you want to continue, type [yes]: ", target); ++line_num;
+                transform_string(target, word_len, towupper);
+                printf("You didn't find the word \"%ls\". If you want to continue, type [yes]: ", target); ++line_num;
                 quit = _ask_user_if_they_want_to_continue(layout_handler, &word_order);
                 if (false == quit) {
                     _get_random_word(target, wordle);
-                    target[word_len] = '\0';
+                    target[word_len] = L'\0';
                 }
             }
         } else {
-            _print_info("Word is not valid!\n", &line_num);
-            _empty_stdin(input, sizeof(input));
+            _print_info(L"Word is not valid!\n", &line_num);
+            _empty_stdin(input, sizeof(input) / sizeof(wchar_t));
         }
         word[0] = '\0';
     }
@@ -131,17 +158,28 @@ bool run_game_loop(wordle_t* wordle, int word_num)
     return true;
 }
 
-static void _get_random_word(char word[], wordle_t* wordle)
+static void _get_random_word(wchar_t word[], wordle_t* wordle)
 {
     assert(wordle);
     srand(time(NULL));
     const size_t size = get_dynamic_array_size(&wordle->words);
     const size_t random_number = rand() % size;
-    const char* src = get_dynamic_array_element(&wordle->words, random_number);
-    memcpy(word, src, wordle->word_length);
+    assert(wordle->language == LANGUAGE_ENGLISH);
+#ifdef DICTONARY_OPTIMIZATION_FOR_MEMORY
+    if (wordle->language == LANGUAGE_ENGLISH) {
+        const char* src = get_dynamic_array_element(&wordle->words, random_number);
+        for (int i = 0; i != wordle->word_length; ++i) {
+            word[i] = src[i];
+        }
+    } else
+#endif
+    {
+        const wchar_t* src = get_dynamic_array_element(&wordle->words, random_number);
+        wcsncpy(word, src, wordle->word_length);
+    }
 }
 
-dynamic_array_t _create_english_dictionary(const char* filepath, const int word_length)
+dynamic_array_t _create_english_dictionary(const char* filepath, const int word_length, const bool use_wide_char)
 {
     FILE* fd = fopen(filepath, "r");
     if (!fd) {
@@ -150,16 +188,27 @@ dynamic_array_t _create_english_dictionary(const char* filepath, const int word_
         return dynamic_array;
     }
 
-    char line[128] = {0}; // You may consider using dynamically allocated memory
-    dynamic_array_t dynamic_word_list = create_dynamic_array(1000, word_length);
-    int step_size = 0;
-    while (fgets(line, sizeof(line), fd)) {
-        const size_t line_size = strlen(line);
-        assert(line_size != sizeof(line) - 1 && "Increase the line size");
-        if (validate_word(line, line_size, word_length)) {
-            append_dynamic_array(&dynamic_word_list, line);
+    const size_t char_size_in_dict = use_wide_char ? sizeof(wchar_t) : sizeof(char);
+    dynamic_array_t dynamic_word_list = create_dynamic_array(1000, word_length * char_size_in_dict);
+
+    if (use_wide_char == false) {
+        char line[128] = {0}; // You may consider using dynamically allocated memory
+        while (fgets(line, sizeof(line), fd)) {
+            const size_t line_size = strlen(line);
+            assert(line_size != sizeof(line) - 1 && "Increase the line size");
+            if (validate_word(line, line_size, word_length)) {
+                append_dynamic_array(&dynamic_word_list, line);
+            }
         }
-        step_size++;
+    } else {
+        wchar_t line[128] = {0}; // You may consider using dynamically allocated memory
+        while (fgetws(line, sizeof(line) / sizeof(wchar_t), fd)) {
+            const size_t line_size = wcslen(line);
+            assert(line_size != (sizeof(line) / sizeof(wchar_t) - 1) && "Increase the line size");
+            if (validate_wc_word(line, line_size, word_length)) {
+                append_dynamic_array(&dynamic_word_list, line);
+            }
+        }
     }
  
     fclose(fd);
@@ -172,62 +221,76 @@ void _print_dictionary(const wordle_t* wordle)
     if (wordle == NULL) {
         return;
     }
-    const char* w0 = get_dynamic_array_element((dynamic_array_t*) &wordle->words, 444);
+    const char* w0 = get_dynamic_array_element((dynamic_array_t*) &wordle->words, 0);
     char word[MAX_WORD_LENGTH + 1] = {0};
     memcpy(word, w0, wordle->word_length);
     word[wordle->word_length] = '\0';
     printf("first word %s\n", word);
 }
 
-static void _empty_stdin(char buf[], const size_t buf_size)
+static void _empty_stdin(wchar_t buf[], const size_t buf_size)
 {
     if (buf == NULL) {
         return;
     }
-    while (strlen(buf) == buf_size - 1) {
-        fgets(buf, buf_size, stdin);
+    while (wcslen(buf) == buf_size - 1) {
+        fgetws(buf, buf_size, stdin);
     }
-    buf[0] = '\0';
+    buf[0] = L'\0';
 }
 
 static bool _ask_user_if_they_want_to_continue(layout_handler_t layout_handler, int* word_order)
 {
-    char input[16];
-    if (fgets(input, sizeof(input), stdin) == NULL) {
+    wchar_t input[16];
+    if (fgetws(input, sizeof(input), stdin) == NULL) {
         printf("\n");
         return true;
     }
     bool quit = false;
-    transform_string(input, strlen(input), tolower);
-    if (strncmp(input, "yes", 3) == 0) {
+    transform_string(input, wcslen(input), towlower);
+    if (wcsncmp(input, L"yes", 3) == 0) {
         clear_layout(layout_handler);
         *word_order = 0;
-        _empty_stdin(input, sizeof(input));
+        _empty_stdin(input, sizeof(input) / sizeof(wchar_t));
     } else {
         quit = true;
     }
     return quit;
 }
 
-static bool _is_word_in_dictionary(char word[], wordle_t* wordle)
+static bool _is_word_in_dictionary(wchar_t word[], wordle_t* wordle)
 {
-    return find_element_in_dynamic_array(&wordle->words, word);
+#ifdef DICTONARY_OPTIMIZATION_FOR_MEMORY
+    if (wordle->language == LANGUAGE_ENGLISH) {
+        char buf[MAX_WORD_LENGTH] = {0};
+        for (int i = 0; i != wordle->word_length; ++i) {
+            // buf[i] = ((int)word[i]) & 0X000000FF; // Can it be written as portable?
+            buf[i] = (char)word[i]; // Can it be written as portable?
+        }
+        return find_element_in_dynamic_array(&wordle->words, buf);
+    } else
+#endif
+    {
+        return find_element_in_dynamic_array(&wordle->words, word);
+    }
 }
 
 static void _clear_stdout(const size_t line_num)
 {
+#ifndef DEBUG_WORDLE
     for (size_t i = 0; i != line_num; ++i) {
         printf("\033[A\033[2K");
     }
     fflush(stdout);
+#endif
 }
 
-static void _print_info(const char* str, size_t* line_num)
+static void _print_info(const wchar_t* str, size_t* line_num)
 {
-    print(stdout, str, strlen(str), line_num);
+    print(stdout, str, wcslen(str), line_num);
 }
 
-static size_t _count_character(const char str[], const size_t size, const int c)
+static size_t _count_character(const wchar_t str[], const size_t size, const wchar_t c)
 {
     size_t total = 0;
     for (size_t i = 0; i != size; ++i) {
@@ -238,12 +301,12 @@ static size_t _count_character(const char str[], const size_t size, const int c)
     return total;
 }
 
-static void _find_position(const char word[MAX_WORD_LENGTH], const char target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH])
+static void _find_position(const wchar_t word[MAX_WORD_LENGTH], const wchar_t target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH])
 {
     for (int i = 0; i != word_len; ++i) {
         if (word[i] == target[i]) {
             position[i] = RIGHT_PLACE;
-        } else if (strchr(target, word[i])) {
+        } else if (wcschr(target, word[i])) {
             position[i] = EXIST;
         } else {
             position[i] = NONE;
