@@ -99,7 +99,6 @@ bool run_game_loop(wordle_t* wordle, int word_num)
     }
     wchar_t target[MAX_WORD_LENGTH + 1] = {0};
     _get_random_word(target, wordle);
-    printf("Target: %ls\n", target);
     target[word_len] = '\0';
     wchar_t input[32] = {0};
     wchar_t word[MAX_WORD_LENGTH + 1] = {0};

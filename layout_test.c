@@ -8,7 +8,7 @@
 
 UTEST_STATE();
 
-void configure_locale()
+void configure_locale(void)
 {
     const char* english_code = "en_US.UTF-8";
     const char* l;

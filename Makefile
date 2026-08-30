@@ -25,5 +25,8 @@ dynamic_array_test: dynamic_array_test.c dynamic_array.h utest.h
 words_alpha.txt:
 	wget -q https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt
 
+dependencies:
+	sudo locale-gen tr_TR.UTF-8
+
 clean:
-	rm -f wordle layout_test dynamic_array_test utest.h *.o words_alpha.txt
+	rm -rf wordle layout_test dynamic_array_test utest.h *.o words_alpha.txt *.dSYM/

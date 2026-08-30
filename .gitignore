@@ -2,5 +2,7 @@ test
 utest.h
 wordle
 dynamic_array_test
+layout_test
 *.o
 words_alpha.txt
+*.dSYM/

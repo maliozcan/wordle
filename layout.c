@@ -252,7 +252,7 @@ void clear_layout(layout_handler_t layout_handler)
     }
 }
 
-const char* draw_example()
+const char* draw_example(void)
 {
     static char box_1x1[] =
         "┌───┐\n"
