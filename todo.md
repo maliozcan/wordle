@@ -1,0 +1,7 @@
+- Add unit test for wordle
+  - You should set the target arbitrarily.
+  - You should add words arbitrarily and check colors.
+  - Ex 1: When the target is DUMMY, the first letter in the word MUMMY shouldn't be in EXIST state.
+  - Ex 2: When the target is "DUMMY", an imaginary word "CADDD" must have EXIST state for the first D, the remainings must be NONE since there is one 'D' letter in "DUMMY".
+  - Ex 3: When the target is "ROOKY", the first O in BLOOD should be in RIGHT_PLACE and the second O should be in EXIST state.
+  - Note that you don't need to check layout since we are checking it in layout tests.
