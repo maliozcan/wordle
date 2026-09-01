@@ -5,3 +5,12 @@
   - Ex 2: When the target is "DUMMY", an imaginary word "CADDD" must have EXIST state for the first D, the remainings must be NONE since there is one 'D' letter in "DUMMY".
   - Ex 3: When the target is "ROOKY", the first O in BLOOD should be in RIGHT_PLACE and the second O should be in EXIST state.
   - Note that you don't need to check layout since we are checking it in layout tests.
+
+- Show letters in the layout immediately without requiring typing enter.
+
+- Show which letters used. And specify which letters are in the word, or not with colors.
+
+- Add Turkish as a new language
+  - Get the language as an argument
+
+- Design a server-client system
