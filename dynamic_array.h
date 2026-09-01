@@ -99,6 +99,7 @@ static inline void free_dynamic_array(dynamic_array_t* dynamic_array)
         dynamic_array->used_size = 0;
         dynamic_array->element_size = 0;
         free(dynamic_array->buf);
+        dynamic_array->buf = NULL;
     }
 }
 

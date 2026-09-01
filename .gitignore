@@ -1,6 +1,7 @@
 test
 utest.h
 wordle
+wordle_test
 dynamic_array_test
 layout_test
 *.o

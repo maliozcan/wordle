@@ -26,7 +26,10 @@ static void _get_random_word(wchar_t word[], wordle_t* wordle);
 static bool _is_word_in_dictionary(wchar_t word[], wordle_t* wordle);
 static void _clear_stdout(const size_t line_num);
 static void _print_info(const wchar_t* str, size_t* line_num);
-static void _find_position(const wchar_t word[MAX_WORD_LENGTH], const wchar_t target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH]);
+
+#ifndef TEST_BUILD
+static void find_position(const wchar_t word[MAX_WORD_LENGTH], const wchar_t target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH]);
+#endif
 
 wordle_t create_wordle(const language_t lang, const int word_len, const char* filepath)
 {
@@ -121,7 +124,7 @@ bool run_game_loop(wordle_t* wordle, int word_num)
         if (validate_wc_word(input, str_size, word_len) && _is_word_in_dictionary(input, wordle)) {
             memcpy(word, input, word_len * sizeof(wchar_t));
             transform_string(word, word_len, towlower);
-            _find_position(word, target, word_len, position);
+            find_position(word, target, word_len, position);
             add_word(layout_handler, word, word_order, position);
             ++word_order;
             if (wcsncmp(word, target, word_len) == 0) {
@@ -300,8 +303,23 @@ static size_t _count_character(const wchar_t str[], const size_t size, const wch
     return total;
 }
 
-static void _find_position(const wchar_t word[MAX_WORD_LENGTH], const wchar_t target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH])
+static bool _check_upper_case(const wchar_t word[MAX_WORD_LENGTH], const int word_len)
 {
+    bool result = true;
+    for (int i = 0; i != word_len; ++i) {
+        if (iswupper(word[i]) == 0) {
+            result = false;
+            break;
+        }
+    }
+    return result;
+}
+
+void find_position(const wchar_t word[MAX_WORD_LENGTH], const wchar_t target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH])
+{
+    assert(_check_upper_case(word, word_len));
+    assert(_check_upper_case(target, word_len));
+
     for (int i = 0; i != word_len; ++i) {
         if (word[i] == target[i]) {
             position[i] = RIGHT_PLACE;
