@@ -16,6 +16,11 @@ static inline size_t print(FILE* f, const wchar_t* str, const size_t size, size_
     memcpy(buffer, str, size * sizeof(wchar_t));
     buffer[size] = L'\0';
     fprintf(f, "%ls", buffer);
+
+    if (line_num == NULL) {
+        return size;
+    }
+
     for (size_t i = 0; i != size; ++i) {
         if (str[i] == L'\n') {
             ++(*line_num);

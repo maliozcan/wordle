@@ -228,6 +228,10 @@ bool add_word(layout_handler_t layout_handler, const wchar_t* word, int order, c
 
 static color_type _get_color(const letter_position_type position)
 {
+    _Static_assert((int) NONE == COLOR_DEFAULT, "");
+    _Static_assert((int) EXIST == COLOR_GOLDEN, "");
+    _Static_assert((int) RIGHT_PLACE == COLOR_GREEN, "");
+
     static const color_type position_to_color[NUM_OF_LETTER_POSITION] = {COLOR_DEFAULT, COLOR_GOLDEN, COLOR_GREEN};
     if (position >= NONE && position < NUM_OF_LETTER_POSITION) {
         return position_to_color[position];
