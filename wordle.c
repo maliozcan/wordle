@@ -292,17 +292,6 @@ static void _print_info(const wchar_t* str, size_t* line_num)
     print(stdout, str, wcslen(str), line_num);
 }
 
-static size_t _count_character(const wchar_t str[], const size_t size, const wchar_t c)
-{
-    size_t total = 0;
-    for (size_t i = 0; i != size; ++i) {
-        if (str[i] == c) {
-            ++total;
-        }
-    }
-    return total;
-}
-
 static bool _check_upper_case(const wchar_t word[MAX_WORD_LENGTH], const int word_len)
 {
     bool result = true;
@@ -320,45 +309,30 @@ void find_position(const wchar_t word[MAX_WORD_LENGTH], const wchar_t target[MAX
     assert(_check_upper_case(word, word_len));
     assert(_check_upper_case(target, word_len));
 
+    wchar_t unmatched_in_target[MAX_WORD_LENGTH + 1] = {0};
+    wchar_t not_found_in_word[MAX_WORD_LENGTH + 1] = {0};
+
+    int k = 0;
     for (int i = 0; i != word_len; ++i) {
+        position[i] = NONE;
         if (word[i] == target[i]) {
             position[i] = RIGHT_PLACE;
-        } else if (wcschr(target, word[i])) {
-            position[i] = EXIST;
         } else {
-            position[i] = NONE;
+            not_found_in_word[i] = word[i];
+            unmatched_in_target[k] = target[i];
+            ++k;
         }
     }
-    // When the target is DUMMY, the first letter in the word MUMMY shouldn't be in EXIST state.
-    for (int i = 0; i != word_len; ++i) {
-        if (position[i] != RIGHT_PLACE) {
-            continue;
-        }
-        for (int j = 0; j != word_len; ++j) {
-            if (j == i || target[j] == target[i]) {
-                continue;
-            }
-            if (target[i] == word[j]) {
-                position[j] = NONE;
-            }
-        }
-    }
+    unmatched_in_target[k] = L'\0';
 
-    // When the target is "DUMMY", an imaginary word "CADDD" must have EXIST state for the first D,
-    // the remainings must be NONE since there is one 'D' letter in "DUMMY".
     for (int i = 0; i != word_len; ++i) {
-        if (position[i] != EXIST) {
+        if (not_found_in_word[i] == 0) {
             continue;
         }
-        size_t count_of_existing = _count_character(target, word_len, word[i]);
-        for (int j = 0; j != word_len; ++j) {
-            if (word[i] == word[j]) {
-                if (count_of_existing > 0) {
-                    --count_of_existing;
-                } else {
-                    position[j] = NONE;
-                }
-            }
+        wchar_t* c = wcschr(unmatched_in_target, not_found_in_word[i]);
+        if (c != NULL) {
+            position[i] = EXIST;
+            *c = L'_';
         }
     }
 }
