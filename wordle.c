@@ -26,6 +26,7 @@ static void _get_random_word(wchar_t word[], wordle_t* wordle);
 static bool _is_word_in_dictionary(wchar_t word[], wordle_t* wordle);
 static void _clear_stdout(const size_t line_num);
 static void _print_info(const wchar_t* str, size_t* line_num);
+static bool _check_upper_case(const wchar_t word[MAX_WORD_LENGTH], const int word_len);
 
 #ifndef TEST_BUILD
 static void find_position(const wchar_t word[MAX_WORD_LENGTH], const wchar_t target[MAX_WORD_LENGTH + 1], const int word_len, letter_position_type position[MAX_WORD_LENGTH]);
@@ -121,9 +122,9 @@ bool run_game_loop(wordle_t* wordle, int word_num)
             break;
         }
         const int str_size = wcslen(input);
+        transform_wc_string(input, word_len, towupper);
         if (validate_wc_word(input, str_size, word_len) && _is_word_in_dictionary(input, wordle)) {
             memcpy(word, input, word_len * sizeof(wchar_t));
-            transform_string(word, word_len, towlower);
             find_position(word, target, word_len, position);
             add_word(layout_handler, word, word_order, position);
             ++word_order;
@@ -141,7 +142,6 @@ bool run_game_loop(wordle_t* wordle, int word_num)
                 _clear_stdout(line_num);
                 line_num = 0;
                 draw_layout(layout_handler, &line_num);
-                transform_string(target, word_len, towupper);
                 printf("You didn't find the word \"%ls\". If you want to continue, type [yes]: ", target); ++line_num;
                 quit = _ask_user_if_they_want_to_continue(layout_handler, &word_order);
                 if (false == quit) {
@@ -178,6 +178,7 @@ static void _get_random_word(wchar_t word[], wordle_t* wordle)
     {
         const wchar_t* src = get_dynamic_array_element(&wordle->words, random_number);
         wcsncpy(word, src, wordle->word_length);
+        assert(_check_upper_case(word, wordle->word_length));
     }
 }
 
@@ -199,6 +200,7 @@ dynamic_array_t _create_english_dictionary(const char* filepath, const int word_
             const size_t line_size = strlen(line);
             assert(line_size != sizeof(line) - 1 && "Increase the line size");
             if (validate_word(line, line_size, word_length)) {
+                transform_string(line, word_length, toupper);
                 append_dynamic_array(&dynamic_word_list, line);
             }
         }
@@ -208,6 +210,7 @@ dynamic_array_t _create_english_dictionary(const char* filepath, const int word_
             const size_t line_size = wcslen(line);
             assert(line_size != (sizeof(line) / sizeof(wchar_t) - 1) && "Increase the line size");
             if (validate_wc_word(line, line_size, word_length)) {
+                transform_wc_string(line, word_length, towupper);
                 append_dynamic_array(&dynamic_word_list, line);
             }
         }
@@ -249,7 +252,7 @@ static bool _ask_user_if_they_want_to_continue(layout_handler_t layout_handler, 
         return true;
     }
     bool quit = false;
-    transform_string(input, wcslen(input), towlower);
+    transform_wc_string(input, wcslen(input), towlower);
     if (wcsncmp(input, L"yes", 3) == 0) {
         clear_layout(layout_handler);
         *word_order = 0;

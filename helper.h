@@ -35,7 +35,14 @@ static inline size_t print_newline(FILE* f, size_t* line_num)
     return 1;
 }
 
-static inline void transform_string(wchar_t* str, const size_t size, wfptr_t f)
+static inline void transform_string(char* str, const size_t size, fptr_t f)
+{
+    for (size_t i = 0; i != size; ++i) {
+        str[i] = f(str[i]);
+    }
+}
+
+static inline void transform_wc_string(wchar_t* str, const size_t size, wfptr_t f)
 {
     for (size_t i = 0; i != size; ++i) {
         str[i] = f(str[i]);
