@@ -8,3 +8,13 @@
   - Get the language as an argument
 
 - Design a server-client system
+
+- Provide an installation via `make && make install`
+
+- Consider to improve UI, or add GUI
+
+- Provide a license
+
+- Add a readme file.
+
+- Organize the hierarchy
