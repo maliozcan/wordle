@@ -18,6 +18,7 @@
 // #define DICTONARY_OPTIMIZATION_FOR_MEMORY
 // #define DEBUG_WORDLE
 
+
 dynamic_array_t _create_english_dictionary(const char* filepath, const int word_length, const bool use_wide_char);
 void _print_dictionary(const wordle_t* wordle);
 static void _empty_stdin(wchar_t buf[], const size_t buf_size);
@@ -89,7 +90,7 @@ bool run_game_loop(wordle_t* wordle, int word_num)
         return false;
     }
 
-    layout_handler_t layout_handler = initialize_layout(word_len, word_num);
+    layout_handler_t layout_handler = initialize_layout(wordle->language, word_len, word_num);
     if (NULL == layout_handler) {
         fprintf(stderr, "The layout didn't initialized\n");
         return false;

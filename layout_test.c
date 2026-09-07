@@ -27,7 +27,7 @@ int main(int argc, const char *const argv[]) {
 static const letter_position_type position[MAX_WORD_LENGTH] = {0};
 
 UTEST(layout_initializtion, empty_layout_3x1) {
-    layout_handler_t layout_handler = initialize_layout(3, 1);
+    layout_handler_t layout_handler = initialize_layout(LANGUAGE_ENGLISH, 3, 1);
     ASSERT_TRUE(NULL != layout_handler);
 
     size_t line_num = 0;
@@ -50,7 +50,7 @@ UTEST(layout_initializtion, empty_layout_3x1) {
 }
 
 UTEST(layout_initializtion, empty_layout_5x1) {
-    layout_handler_t layout_handler = initialize_layout(5, 1);
+    layout_handler_t layout_handler = initialize_layout(LANGUAGE_ENGLISH, 5, 1);
     ASSERT_TRUE(NULL != layout_handler);
 
     size_t line_num = 0;
@@ -70,7 +70,7 @@ UTEST(layout_initializtion, empty_layout_5x1) {
 }
 
 UTEST(layout_initializtion, empty_layout_5x2) {
-    layout_handler_t layout_handler = initialize_layout(5, 2);
+    layout_handler_t layout_handler = initialize_layout(LANGUAGE_ENGLISH, 5, 2);
     ASSERT_TRUE(NULL != layout_handler);
 
     size_t line_num = 0;
@@ -92,7 +92,7 @@ UTEST(layout_initializtion, empty_layout_5x2) {
 }
 
 UTEST(layout_initializtion, empty_layout_5x3) {
-    layout_handler_t layout_handler = initialize_layout(5, 3);
+    layout_handler_t layout_handler = initialize_layout(LANGUAGE_ENGLISH, 5, 3);
     ASSERT_TRUE(NULL != layout_handler);
 
     size_t line_num = 0;
@@ -117,7 +117,7 @@ UTEST(layout_initializtion, empty_layout_5x3) {
 }
 
 UTEST(word_addition, layout_5x1) {
-    layout_handler_t layout_handler = initialize_layout(5, 1);
+    layout_handler_t layout_handler = initialize_layout(LANGUAGE_ENGLISH, 5, 1);
     ASSERT_TRUE(NULL != layout_handler);
 
     size_t line_num = 0;
@@ -140,7 +140,7 @@ UTEST(word_addition, layout_5x1) {
 }
 
 UTEST(word_addition, layout_5x2) {
-    layout_handler_t layout_handler = initialize_layout(5, 2);
+    layout_handler_t layout_handler = initialize_layout(LANGUAGE_ENGLISH, 5, 2);
     ASSERT_TRUE(NULL != layout_handler);
 
     size_t line_num = 0;
@@ -165,7 +165,7 @@ UTEST(word_addition, layout_5x2) {
 }
 
 UTEST(word_addition, layout_5x3) {
-    layout_handler_t layout_handler = initialize_layout(5, 3);
+    layout_handler_t layout_handler = initialize_layout(LANGUAGE_ENGLISH, 5, 3);
     ASSERT_TRUE(NULL != layout_handler);
 
     size_t line_num = 0;

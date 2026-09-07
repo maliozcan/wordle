@@ -2,7 +2,7 @@
 
 - Show letters in the layout immediately without requiring typing enter.
 
-- Show which letters used. And specify which letters are in the word, or not with colors.
+- Configure colors considering background which it may be different from terminal to terminal
 
 - Add Turkish as a new language
   - Get the language as an argument
@@ -18,3 +18,5 @@
 - Add a readme file.
 
 - Organize the hierarchy
+
+- Refactor makefile to build for different targets e.g. wordle, test.

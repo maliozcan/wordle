@@ -22,9 +22,12 @@ wordle_test: wordle_test.c utest.h wordle_test.o layout.o words_alpha.txt
 wordle_test.o: wordle.c wordle.h layout.h common_defs.h dynamic_array.h helper.h
 	$(CC) $(CFLAGS) $(TEST_FLAGS) -c $< -o $@
 
-layout_test: layout_test.c utest.h layout.o
-	$(CC) $(CFLAGS) $< -o $@ layout.o && \
+layout_test: layout_test.c utest.h layout_for_test.o
+	$(CC) $(CFLAGS) $< -o $@ layout_for_test.o && \
 	./$@
+
+layout_for_test.o: layout.c layout.h common_defs.h helper.h
+	$(CC) $(CFLAGS) $(TEST_FLAGS) -c $< -o $@
 
 dynamic_array_test: dynamic_array_test.c dynamic_array.h utest.h
 	$(CC) $(CFLAGS) $< -o $@ && \

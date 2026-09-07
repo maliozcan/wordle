@@ -7,7 +7,7 @@
 
 typedef void* layout_handler_t;
 
-layout_handler_t initialize_layout(int word_len, int word_num);
+layout_handler_t initialize_layout(language_t lang, int word_len, int word_num);
 void destroy_layout(layout_handler_t layout_handler);
 bool get_layout(char* buffer, const size_t buf_size, layout_handler_t layout_handler);
 size_t draw_layout(layout_handler_t layout_handler, size_t* line_num);

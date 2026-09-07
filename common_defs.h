@@ -16,6 +16,13 @@
 #define MAX_WORD_LENGTH         (8)
 #define MAX_ROW_NUM             (8)
 
+
+typedef enum {
+    LANGUAGE_UNINITIALIZED,
+    LANGUAGE_ENGLISH,
+    NUM_OF_LANGUAGE,
+} language_t;
+
 typedef enum {
     NONE,
     EXIST,

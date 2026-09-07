@@ -4,11 +4,6 @@
 #include "common_defs.h"
 #include "dynamic_array.h"
 
-typedef enum {
-    LANGUAGE_UNINITIALIZED,
-    LANGUAGE_ENGLISH,
-    NUM_OF_LANGUAGE,
-} language_t;
 
 typedef struct {
     language_t language;

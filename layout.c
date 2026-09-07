@@ -11,17 +11,29 @@
 #define SQUARE_SIZE     (5)
 #define INNER_SIZE      (3)
 #define VERTICAL_SIZE   (3)
+#define INFO_ROW_NUM    (3)
+#define INFO_COL_NUM    (12)
 
+
+static const wchar_t english_info_layout[INFO_ROW_NUM][INFO_COL_NUM] = {
+    {L'_', L'Q', L'W', L'E', L'R', L'T', L'Y', L'U', L'I', L'O', L'P', L'_'},
+    {L'_', L'A', L'S', L'D', L'F', L'G', L'H', L'J', L'K', L'L', L'_', L'_'},
+    {L'_', L'_', L'Z', L'X', L'C', L'V', L'B', L'N', L'M', L'_', L'_', L'_'}
+};
 
 typedef enum {
     COLOR_DEFAULT,
     COLOR_GOLDEN,
     COLOR_GREEN,
+    COLOR_GRAY,
+    COLOR_BLACK
 } color_type;
 
 static const char* default_color = "\033[0m";
 static const char* green_color = "\033[32m";
 static const char* golden_color = "\033[38;5;220m";
+static const char* gray_color = "\033[37m";
+static const char* black_color = "\033[30m";
 
 typedef struct {
     color_type color;
@@ -29,9 +41,14 @@ typedef struct {
 } letter_type;
 
 typedef struct {
+    letter_type letter[INFO_ROW_NUM][INFO_COL_NUM];
+} info_type;
+
+typedef struct {
     int word_num;
     int word_length;
     letter_type letter[MAX_ROW_NUM][MAX_WORD_LENGTH];
+    info_type info;
 } layout_structure_type;
 
 static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_structure, size_t* line_num);
@@ -44,7 +61,33 @@ static void set_letter(letter_type* letter, color_type color, const wchar_t c)
     letter->data = c;
 }
 
-layout_handler_t initialize_layout(int word_len, int word_num)
+// You may optimize this using a lookup table.
+const letter_type* _find_info_letter(const info_type* info, const wchar_t c)
+{
+    for (int row_index = 0; row_index != INFO_ROW_NUM; ++row_index) {
+        for (int letter_index = 0; letter_index != INFO_COL_NUM; ++letter_index) {
+            const letter_type* letter = &info->letter[row_index][letter_index];
+            if (letter->data == c) {
+                return letter;
+            }
+        }
+    }
+    return NULL;
+}
+
+#ifndef TEST_BUILD
+static void _update_info(const wchar_t* word, const int word_len, const letter_position_type position[MAX_WORD_LENGTH], info_type* info)
+{
+    assert(NULL != info);
+    for (int i = 0; i != word_len; ++i) {
+        letter_type* letter = (letter_type*) _find_info_letter(info, word[i]);
+        assert(NULL != letter);
+        letter->color = (position[i] == NONE) ? COLOR_DEFAULT : COLOR_BLACK;
+    }
+}
+#endif // TEST_BUILD
+
+layout_handler_t initialize_layout(language_t lang, int word_len, int word_num)
 {
     assert(word_len > 2);
     assert(word_num > 0);
@@ -60,6 +103,19 @@ layout_handler_t initialize_layout(int word_len, int word_num)
     for (int row_index = 0; row_index != MAX_ROW_NUM; ++row_index) {
         for (int letter_index = 0; letter_index != MAX_WORD_LENGTH; ++letter_index) {
             set_letter(&layout_structure->letter[row_index][letter_index], COLOR_DEFAULT, L' ');
+        }
+    }
+
+    assert(lang == LANGUAGE_ENGLISH);
+    const wchar_t (*info_layout)[INFO_COL_NUM] = NULL;
+    if (lang == LANGUAGE_ENGLISH) {
+        info_layout = english_info_layout;
+    }
+
+    for (int row_index = 0; row_index != INFO_ROW_NUM; ++row_index) {
+        for (int letter_index = 0; letter_index != INFO_COL_NUM; ++letter_index) {
+            const wchar_t c = info_layout[row_index][letter_index];
+            set_letter(&layout_structure->info.letter[row_index][letter_index], COLOR_GRAY, c);
         }
     }
 
@@ -88,12 +144,47 @@ size_t print_letter(FILE* f, const letter_type* letter)
         case COLOR_GOLDEN:
             snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", golden_color, letter->data, default_color);
             break;
+        case COLOR_GRAY:
+            snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", gray_color, letter->data, default_color);
+            break;
+        case COLOR_BLACK:
+            snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", black_color, letter->data, default_color);
+            break;
         default:
             break;
     }
     fprintf(f, "%s", all_buffer);
     return strlen(all_buffer);
 }
+
+#ifndef TEST_BUILD
+static size_t _prapare_info_layout(FILE* filestream, const info_type* info, size_t* line_num)
+{
+    if (info == NULL) {
+        return 0;
+    }
+
+    size_t character_num = 0;
+    character_num += print_newline(filestream, line_num);
+    for (int row_index = 0; row_index != INFO_ROW_NUM; ++row_index) {
+        if (row_index == 1) {
+            character_num += print(filestream, L" ", 1, line_num);
+        }
+        for (int letter_index = 0; letter_index != INFO_COL_NUM; ++letter_index) {
+            const letter_type* letter = &info->letter[row_index][letter_index];
+            if (letter->data == L'_') {
+                character_num += print(filestream, L" ", 1, line_num);
+            } else {
+                character_num += print_letter(filestream, letter);
+            }
+            character_num += print(filestream, L" ", 1, line_num);
+        }
+        character_num += print_newline(filestream, line_num);
+    }
+    character_num += print_newline(filestream, line_num);
+    return character_num;
+}
+#endif // TEST_BUILD
 
 static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_structure, size_t* line_num)
 {
@@ -157,6 +248,10 @@ static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_st
     }
     character_num += print(filestream, L"┘", 1, line_num);
     character_num += print_newline(filestream, line_num);
+
+#ifndef TEST_BUILD
+    character_num += _prapare_info_layout(filestream, &layout_structure->info, line_num);
+#endif // TEST_BUILD
 
     return character_num;
 }
@@ -223,6 +318,11 @@ bool add_word(layout_handler_t layout_handler, const wchar_t* word, int order, c
         const color_type color = _get_color(position[i]);
         set_letter(&layout_structure->letter[order][i], color, towupper(word[i]));
     }
+
+#ifndef TEST_BUILD
+    _update_info(word, word_len, position, &layout_structure->info);
+#endif // TEST_BUILD
+
     return true;
 }
 
