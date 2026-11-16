@@ -20,3 +20,7 @@
 - Organize the hierarchy
 
 - Refactor makefile to build for different targets e.g. wordle, test.
+
+- Add github action to run tests
+
+- Add history of the used words
