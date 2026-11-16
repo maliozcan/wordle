@@ -122,7 +122,7 @@ UTEST(word_addition, layout_5x1) {
 
     size_t line_num = 0;
     draw_layout(layout_handler, &line_num);
-    ASSERT_TRUE(add_word(layout_handler, L"table", 0, position));
+    ASSERT_TRUE(add_word(layout_handler, L"table", 0, position, false));
 
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     char* layout = malloc(num_of_bytes_written);
@@ -145,8 +145,8 @@ UTEST(word_addition, layout_5x2) {
 
     size_t line_num = 0;
     draw_layout(layout_handler, &line_num);
-    ASSERT_TRUE(add_word(layout_handler, L"Table", 0, position));
-    ASSERT_TRUE(add_word(layout_handler, L"SiGHt", 1, position));
+    ASSERT_TRUE(add_word(layout_handler, L"Table", 0, position, false));
+    ASSERT_TRUE(add_word(layout_handler, L"SiGHt", 1, position, false));
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);
@@ -170,9 +170,9 @@ UTEST(word_addition, layout_5x3) {
 
     size_t line_num = 0;
     draw_layout(layout_handler, &line_num);
-    ASSERT_TRUE(add_word(layout_handler, L"Table", 0, position));
-    ASSERT_TRUE(add_word(layout_handler, L"SIGHT", 1, position));
-    ASSERT_TRUE(add_word(layout_handler, L"radar", 2, position));
+    ASSERT_TRUE(add_word(layout_handler, L"Table", 0, position, false));
+    ASSERT_TRUE(add_word(layout_handler, L"SIGHT", 1, position, false));
+    ASSERT_TRUE(add_word(layout_handler, L"radar", 2, position, false));
     const size_t num_of_bytes_written = draw_layout(layout_handler, &line_num);
     char* layout = malloc(num_of_bytes_written);
     get_layout(layout, num_of_bytes_written, layout_handler);

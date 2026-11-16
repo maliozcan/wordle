@@ -24,3 +24,6 @@
 - Add github action to run tests
 
 - Add history of the used words
+
+- Center layout info considering word length.
+

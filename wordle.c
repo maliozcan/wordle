@@ -127,7 +127,7 @@ bool run_game_loop(wordle_t* wordle, int word_num)
         if (validate_wc_word(input, str_size, word_len) && _is_word_in_dictionary(input, wordle)) {
             memcpy(word, input, word_len * sizeof(wchar_t));
             find_position(word, target, word_len, position);
-            add_word(layout_handler, word, word_order, position);
+            add_word(layout_handler, word, word_order, position, false);
             ++word_order;
             if (wcsncmp(word, target, word_len) == 0) {
                 _clear_stdout(line_num);

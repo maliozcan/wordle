@@ -61,6 +61,17 @@ static void set_letter(letter_type* letter, color_type color, const wchar_t c)
     letter->data = c;
 }
 
+#ifndef TEST_BUILD
+static void _reset_info(info_type* info) {
+    for (int row_index = 0; row_index != INFO_ROW_NUM; ++row_index) {
+        for (int letter_index = 0; letter_index != INFO_COL_NUM; ++letter_index) {
+            letter_type* letter = &info->letter[row_index][letter_index];
+            letter->color = COLOR_DEFAULT;
+        }
+    }
+}
+#endif
+
 // You may optimize this using a lookup table.
 const letter_type* _find_info_letter(const info_type* info, const wchar_t c)
 {
@@ -297,7 +308,7 @@ bool get_layout(char* buffer, const size_t buf_size, layout_handler_t layout_han
     return true;
 }
 
-bool add_word(layout_handler_t layout_handler, const wchar_t* word, int order, const letter_position_type position[MAX_WORD_LENGTH])
+bool add_word(layout_handler_t layout_handler, const wchar_t* word, int order, const letter_position_type position[MAX_WORD_LENGTH], const bool reset)
 {
     layout_structure_type* layout_structure = (layout_structure_type*) layout_handler;
     if (NULL == layout_structure) {
@@ -320,7 +331,11 @@ bool add_word(layout_handler_t layout_handler, const wchar_t* word, int order, c
     }
 
 #ifndef TEST_BUILD
-    _update_info(word, word_len, position, &layout_structure->info);
+    if (reset) {
+        _reset_info(&layout_structure->info);
+    } else {
+        _update_info(word, word_len, position, &layout_structure->info);
+    }
 #endif // TEST_BUILD
 
     return true;
@@ -352,7 +367,7 @@ void clear_layout(layout_handler_t layout_handler)
         word[i] = L' ';
     }
     for (int order = 0; order != layout_structure->word_num; ++order) {
-        add_word(layout_handler, word, order, position);
+        add_word(layout_handler, word, order, position, true);
     }
 }
 
