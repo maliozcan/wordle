@@ -2,9 +2,12 @@
 #define HELPER_H
 
 #include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 #include <wchar.h>
 #include <ctype.h>
 #include <wctype.h>
+#include <assert.h>
 
 typedef int (*fptr_t) (int);
 typedef wint_t (*wfptr_t) (wint_t);

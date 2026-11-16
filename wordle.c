@@ -79,7 +79,7 @@ void destroy_wordle(wordle_t* wordle)
     }
 }
 
-bool run_game_loop(wordle_t* wordle, int word_num)
+bool run_game_loop(wordle_t* wordle, int word_num, const char* first_target)
 {
     if (wordle == NULL || is_dynamic_array_allocated(&wordle->words) == false) {
         return false;
@@ -103,7 +103,13 @@ bool run_game_loop(wordle_t* wordle, int word_num)
         position[i] = -1;
     }
     wchar_t target[MAX_WORD_LENGTH + 1] = {0};
-    _get_random_word(target, wordle);
+    if (NULL == first_target) {
+        _get_random_word(target, wordle);
+    } else {
+        for (int i = 0; i != word_len; ++i) {
+            target[i] = btowc(toupper(first_target[i]));
+        }
+    }
     target[word_len] = '\0';
     wchar_t input[32] = {0};
     wchar_t word[MAX_WORD_LENGTH + 1] = {0};

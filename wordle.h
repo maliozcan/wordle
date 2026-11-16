@@ -13,7 +13,7 @@ typedef struct {
 
 wordle_t create_wordle(language_t lang, int word_len, const char* filepath);
 void destroy_wordle(wordle_t* wordle);
-bool run_game_loop(wordle_t* wordle, int word_num);
+bool run_game_loop(wordle_t* wordle, int word_num, const char* first_target);
 
 #ifdef TEST_BUILD
 
