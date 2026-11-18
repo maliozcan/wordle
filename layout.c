@@ -6,6 +6,7 @@
 #include <wctype.h>
 
 #include "layout.h"
+#include "common_defs.h"
 #include "helper.h"
 
 #define SQUARE_SIZE     (5)
@@ -21,19 +22,6 @@ static const wchar_t english_info_layout[INFO_ROW_NUM][INFO_COL_NUM] = {
     {L'_', L'_', L'Z', L'X', L'C', L'V', L'B', L'N', L'M', L'_', L'_', L'_'}
 };
 
-typedef enum {
-    COLOR_DEFAULT,
-    COLOR_GOLDEN,
-    COLOR_GREEN,
-    COLOR_GRAY,
-    COLOR_BLACK
-} color_type;
-
-static const char* default_color = "\033[0m";
-static const char* green_color = "\033[32m";
-static const char* golden_color = "\033[38;5;220m";
-static const char* gray_color = "\033[37m";
-static const char* black_color = "\033[30m";
 
 typedef struct {
     color_type color;
@@ -93,7 +81,7 @@ static void _update_info(const wchar_t* word, const int word_len, const letter_p
     for (int i = 0; i != word_len; ++i) {
         letter_type* letter = (letter_type*) _find_info_letter(info, word[i]);
         assert(NULL != letter);
-        letter->color = (position[i] == NONE) ? COLOR_DEFAULT : COLOR_BLACK;
+        letter->color = (position[i] == NONE) ? COLOR_RED : COLOR_GOLDEN;
     }
 }
 #endif // TEST_BUILD
@@ -126,7 +114,7 @@ layout_handler_t initialize_layout(language_t lang, int word_len, int word_num)
     for (int row_index = 0; row_index != INFO_ROW_NUM; ++row_index) {
         for (int letter_index = 0; letter_index != INFO_COL_NUM; ++letter_index) {
             const wchar_t c = info_layout[row_index][letter_index];
-            set_letter(&layout_structure->info.letter[row_index][letter_index], COLOR_GRAY, c);
+            set_letter(&layout_structure->info.letter[row_index][letter_index], COLOR_WHITE, c);
         }
     }
 
@@ -150,16 +138,16 @@ size_t print_letter(FILE* f, const letter_type* letter)
             snprintf(all_buffer, sizeof(all_buffer), "%lc", letter->data);
             break;
         case COLOR_GREEN:
-            snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", green_color, letter->data, default_color);
+            snprintf(all_buffer, sizeof(all_buffer), "%s%lc", green_color, letter->data);
             break;
         case COLOR_GOLDEN:
-            snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", golden_color, letter->data, default_color);
+            snprintf(all_buffer, sizeof(all_buffer), "%s%lc", golden_color, letter->data);
             break;
-        case COLOR_GRAY:
-            snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", gray_color, letter->data, default_color);
+        case COLOR_WHITE:
+            snprintf(all_buffer, sizeof(all_buffer), "%s%lc", white_color, letter->data);
             break;
-        case COLOR_BLACK:
-            snprintf(all_buffer, sizeof(all_buffer), "%s%lc%s", black_color, letter->data, default_color);
+        case COLOR_RED:
+            snprintf(all_buffer, sizeof(all_buffer), "%s%lc", red_color, letter->data);
             break;
         default:
             break;
@@ -176,23 +164,23 @@ static size_t _prapare_info_layout(FILE* filestream, const info_type* info, size
     }
 
     size_t character_num = 0;
-    character_num += print_newline(filestream, line_num);
+    character_num += print_newline(filestream, white_color, line_num);
     for (int row_index = 0; row_index != INFO_ROW_NUM; ++row_index) {
         if (row_index == 1) {
-            character_num += print(filestream, L" ", 1, line_num);
+            character_num += print(filestream, L" ", 1, white_color, line_num);
         }
         for (int letter_index = 0; letter_index != INFO_COL_NUM; ++letter_index) {
             const letter_type* letter = &info->letter[row_index][letter_index];
             if (letter->data == L'_') {
-                character_num += print(filestream, L" ", 1, line_num);
+                character_num += print(filestream, L" ", 1, white_color, line_num);
             } else {
                 character_num += print_letter(filestream, letter);
             }
-            character_num += print(filestream, L" ", 1, line_num);
+            character_num += print(filestream, L" ", 1, white_color, line_num);
         }
-        character_num += print_newline(filestream, line_num);
+        character_num += print_newline(filestream, white_color, line_num);
     }
-    character_num += print_newline(filestream, line_num);
+    character_num += print_newline(filestream, white_color, line_num);
     return character_num;
 }
 #endif // TEST_BUILD
@@ -213,19 +201,19 @@ static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_st
     size_t character_num = 0;
 
     // row 0
-    character_num += print(filestream, L"┌", 1, line_num);
+    character_num += print(filestream, L"┌", 1, white_color, line_num);
     for (int col = 1; col != char_num_in_line - 1; ++col) {
         const wchar_t* c = (col % 4 == 0) ? L"┬" : L"─";
-        character_num += print(filestream, c, 1, line_num);
+        character_num += print(filestream, c, 1, white_color, line_num);
     }
-    character_num += print(filestream, L"┐", 1, line_num);
-    character_num += print_newline(filestream, line_num);
+    character_num += print(filestream, L"┐", 1, white_color, line_num);
+    character_num += print_newline(filestream, white_color, line_num);
 
     for (int row = 1; row != char_num_in_column - 1; ++row) {
         for (int col = 0; col != char_num_in_line; ++col) {
             if ((row - 1) % 2 == 0) { // middle
                 if (col % 4 == 0) {
-                    character_num += print(filestream, L"│", 1, line_num);
+                    character_num += print(filestream, L"│", 1, white_color, line_num);
                 } else if (col % 4 == 2) {
                     // Print letter
                     // character_num += print(filestream, "X", 1);
@@ -234,31 +222,31 @@ static size_t _prapare_layout(FILE* filestream, layout_structure_type* layout_st
                     const int letter_index = (col - 2) / 4;
                     character_num += print_letter(filestream, &layout_structure->letter[word_order][letter_index]);
                 } else {
-                    character_num += print(filestream, L" ", 1, line_num);
+                    character_num += print(filestream, L" ", 1, white_color, line_num);
                 }
             } else {
                 assert(row % 2 == 0);
                 if (0 == col) {
-                    character_num += print(filestream, L"├", 1, line_num);
+                    character_num += print(filestream, L"├", 1, white_color, line_num);
                 } else if (char_num_in_line - 1 == col) {
-                    character_num += print(filestream, L"┤", 1, line_num);
+                    character_num += print(filestream, L"┤", 1, white_color, line_num);
                 } else {
                     const wchar_t* c = (col % 4 == 0) ? L"┼" : L"─";
-                    character_num += print(filestream, c, 1, line_num);
+                    character_num += print(filestream, c, 1, white_color, line_num);
                 }
             }
         }
-        character_num += print_newline(filestream, line_num);
+        character_num += print_newline(filestream, white_color, line_num);
     }
  
     // row (char_num_in_column - 1)
-    character_num += print(filestream, L"└", 1, line_num);
+    character_num += print(filestream, L"└", 1, white_color, line_num);
     for (int col = 1; col != char_num_in_line - 1; ++col) {
         const wchar_t* c = (col % 4 == 0) ? L"┴" : L"─";
-        character_num += print(filestream, c, 1, line_num);
+        character_num += print(filestream, c, 1, white_color, line_num);
     }
-    character_num += print(filestream, L"┘", 1, line_num);
-    character_num += print_newline(filestream, line_num);
+    character_num += print(filestream, L"┘", 1, white_color, line_num);
+    character_num += print_newline(filestream, white_color, line_num);
 
 #ifndef TEST_BUILD
     character_num += _prapare_info_layout(filestream, &layout_structure->info, line_num);

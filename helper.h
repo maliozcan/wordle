@@ -12,13 +12,14 @@
 typedef int (*fptr_t) (int);
 typedef wint_t (*wfptr_t) (wint_t);
 
-static inline size_t print(FILE* f, const wchar_t* str, const size_t size, size_t* line_num)
+static inline size_t print(FILE* f, const wchar_t* str, const size_t size, const char* color, size_t* line_num)
 {
     static wchar_t buffer[1024];
     assert(size < 1024L);
     memcpy(buffer, str, size * sizeof(wchar_t));
     buffer[size] = L'\0';
-    fprintf(f, "%ls", buffer);
+    const char* c = color ? color : "";
+    fprintf(f, "%s%ls", c, buffer);
 
     if (line_num == NULL) {
         return size;
@@ -32,9 +33,9 @@ static inline size_t print(FILE* f, const wchar_t* str, const size_t size, size_
     return size;
 }
 
-static inline size_t print_newline(FILE* f, size_t* line_num)
+static inline size_t print_newline(FILE* f, const char* color, size_t* line_num)
 {
-    print(f, L"\n", 1, line_num);
+    print(f, L"\n", 1, color, line_num);
     return 1;
 }
 

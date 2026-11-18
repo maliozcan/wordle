@@ -26,7 +26,7 @@ static bool _ask_user_if_they_want_to_continue(layout_handler_t layout_handler, 
 static void _get_random_word(wchar_t word[], wordle_t* wordle);
 static bool _is_word_in_dictionary(wchar_t word[], wordle_t* wordle);
 static void _clear_stdout(const size_t line_num);
-static void _print_info(const wchar_t* str, size_t* line_num);
+static void _print_info(const wchar_t* str, const char* color, size_t* line_num);
 static bool _check_upper_case(const wchar_t word[MAX_WORD_LENGTH], const int word_len);
 
 #ifndef TEST_BUILD
@@ -64,7 +64,6 @@ wordle_t create_wordle(const language_t lang, const int word_len, const char* fi
     if (is_dynamic_array_allocated(&wordle.words)) {
         wordle.language = lang;
         wordle.word_length = word_len;
-        printf("Size of words which have %d letters is %zu\n", word_len, get_dynamic_array_size(&wordle.words));
         // _print_dictionary(&wordle);
     }
     return wordle;
@@ -97,6 +96,10 @@ bool run_game_loop(wordle_t* wordle, int word_num, const char* first_target)
     }
 
     size_t line_num = 0;
+    printf("%sWelcome to wordle with %d letters!", white_color, word_len);
+    print_newline(stdout, white_color, &line_num);
+    printf("%sSize of words which have %d letters is %zu", white_color, word_len, get_dynamic_array_size(&wordle->words));
+    print_newline(stdout, white_color, &line_num);
 
     letter_position_type position[MAX_WORD_LENGTH] = {0};
     for (int i = 0; i != MAX_WORD_LENGTH; ++i) {
@@ -123,7 +126,7 @@ bool run_game_loop(wordle_t* wordle, int word_num, const char* first_target)
         }
         first_time = false;
         draw_layout(layout_handler, &line_num);
-        _print_info(L"> ", &line_num); ++line_num;
+        _print_info(L"> ", white_color, &line_num); ++line_num;
         if (fgetws(input, sizeof(input) / sizeof(wchar_t), stdin) == NULL) {
             printf("\n");
             break;
@@ -139,7 +142,7 @@ bool run_game_loop(wordle_t* wordle, int word_num, const char* first_target)
                 _clear_stdout(line_num);
                 line_num = 0;
                 draw_layout(layout_handler, &line_num);
-                _print_info(L"You found the word. If you want to continue, type [yes]: ", &line_num); ++line_num;
+                _print_info(L"You found the word. If you want to continue, type [yes]: ", white_color, &line_num); ++line_num;
                 quit = _ask_user_if_they_want_to_continue(layout_handler, &word_order);
                 if (false == quit) {
                     _get_random_word(target, wordle);
@@ -157,13 +160,14 @@ bool run_game_loop(wordle_t* wordle, int word_num, const char* first_target)
                 }
             }
         } else {
-            _print_info(L"Word is not valid!\n", &line_num);
+            _print_info(L"Word is not valid!\n", white_color, &line_num);
             _empty_stdin(input, sizeof(input) / sizeof(wchar_t));
         }
         word[0] = '\0';
     }
 
     destroy_layout(layout_handler);
+    printf("%s", default_color);
     return true;
 }
 
@@ -297,9 +301,9 @@ static void _clear_stdout(const size_t line_num)
 #endif
 }
 
-static void _print_info(const wchar_t* str, size_t* line_num)
+static void _print_info(const wchar_t* str, const char* color, size_t* line_num)
 {
-    print(stdout, str, wcslen(str), line_num);
+    print(stdout, str, wcslen(str), color, line_num);
 }
 
 static bool _check_upper_case(const wchar_t word[MAX_WORD_LENGTH], const int word_len)

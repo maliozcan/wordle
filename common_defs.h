@@ -30,4 +30,23 @@ typedef enum {
     NUM_OF_LETTER_POSITION,
 } letter_position_type;
 
+typedef enum {
+    COLOR_DEFAULT,
+    COLOR_GOLDEN,
+    COLOR_GREEN,
+    COLOR_WHITE,
+    COLOR_RED,
+} color_type;
+
+#define default_color "\033[0m"
+#define green_color "\033[92;100m"
+#define golden_color "\033[93;100m"
+#define red_color "\033[91;100m"
+
+#ifndef TEST_BUILD
+#define white_color "\033[97;100m"
+#else
+#define white_color ""
+#endif
+
 #endif // COMMON_DEFS_H

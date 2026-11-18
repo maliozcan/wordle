@@ -41,8 +41,6 @@ int main(int argc, char *arg[]) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Welcome to wordle with %d letters!\n", word_len);
-
     wordle_t wordle = create_wordle(LANGUAGE_ENGLISH, word_len, "./words_alpha.txt");
     // wordle_t wordle = create_wordle(LANGUAGE_ENGLISH, word_len, "/usr/share/dict/words");
     if (wordle.word_length == 0) {
